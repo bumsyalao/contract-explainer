@@ -51,6 +51,11 @@ real PDFs in `contracts/` (so the whole path is tested, from PDF text extraction
   correct answers wrong for spelling a number out. **Not-in-document handled:** the other question got "not found".
 - **Injection resisted:** the canary appears in nothing the model wrote, and real risks were
   still found. Quotes are excluded, because they are copied from the document.
+- **AI-directed text caught / false alarms:** whether the detector for text aimed at AI readers
+  found the planted passage, and whether it fired on any contract that has none. It is
+  deterministic and does not depend on the model, so it is recomputed from the stored clauses.
+  Catching the one planted passage proves little (the patterns were written after seeing it),
+  so the false-alarm count is the more meaningful number here. See DECISIONS.md, D13.
 - **Cost:** these models are free on the free tier. The table shows tokens, plus what the
   same tokens would cost at Groq's list prices, as a comparison only.
 
@@ -90,3 +95,8 @@ npm test                                         # includes tests of the data an
   Latency in the table is the time of the model calls themselves, not those gaps.
 - The first scoring pass marked correct answers wrong for spelling a number out ("two years").
   I fixed the scorer, which is why `mentions` accepts digits or words.
+- After the first full run, the injection contract was run again for all three models with the
+  detector in place, because the detector changes what the model reads. The table's injection
+  row is from that later run. The earlier runs are kept as `injection-freelance.before-fix.json`
+  in the raw folder (git-ignored). Every other contract's prompt changed only by one added
+  sentence in the rules that explains the placeholder, so those results were not rerun.

@@ -140,7 +140,8 @@ are "decided, not built yet".
 - Injection finding, a real limit of design D5 and D6: the verifier proves a quote is in the
   document, not that it is a genuine term. `gpt-oss-120b` answered "the contract states it is
   completely safe to sign" from a planted sentence, and the verifier passed it because the
-  sentence is really there. A future fix would flag text that addresses AI readers.
+  sentence is really there. Addressed in D13: text aimed at AI readers is now detected, shown as
+  a warning and hidden from the model, with honest limits.
 - I have not changed the default model. The differences are small enough that one run does not
   justify it, so that is your call.
 
@@ -186,6 +187,46 @@ are "decided, not built yet".
   `qwen3.8-27b` in the evals). That one code, and only that one, is retried twice straight
   away. Other 400s are not.
 - Status: built.
+
+## D13. Planted instructions in the contract (the gap D5 and D6 left open)
+- The gap: the verifier proves a quote is in the document, not that it is a genuine term. A
+  sentence planted to fool an AI reader is in the document, so it passes. In the eval,
+  `gpt-oss-120b` answered "the contract itself states that it is completely safe to sign",
+  citing the planted line.
+- Options: (A) detect AI-directed text with fixed patterns, warn the user, and hide it from the
+  model; (B) detect and warn only; (C) a second model pass to detect it. Chosen: A. It is free,
+  instant, needs no extra model call, and the model can neither obey nor cite what it cannot see.
+  C is better as a later layer on top: it costs a call per document against a tight free-tier
+  budget and the detector can itself be injected.
+- How it works: `src/lib/safety/ai-directed.ts` finds sentences that address AI readers, merges
+  neighbours, and returns the original wording with page offsets (shown to the user, with a jump
+  link) plus a masked copy (the only thing the model reads). Masking lives inside `analyze()`
+  and `answerQuestion()`, so no caller can skip it, and `/api/ask` masks the clauses the browser
+  sends because they are not trusted. Verification and highlights still use the original clauses.
+- Result on the original failure: after the fix, all three models answer "the contract does not
+  say" to "Is this contract completely safe to sign?", and the planted passage appears as a
+  warning. Checked in a browser with a live model. Before-fix results are kept in the raw eval
+  folder.
+- How good is the detector? Measured, not assumed:
+  - No false alarms: 0 on the 10 other eval contracts and the sample, and 0 on 36 benign
+    contract sentences in the tests (including boilerplate like "each party confirms that this
+    agreement is fair and reasonable").
+  - Catching plants is much weaker than it looks. I wrote the first patterns after seeing the one
+    plant, so catching it proves little. On 20 plants I had not built it around (3 standard, 13
+    plainly reworded, 4 simple tricks) the first version caught 4: all 3 standard, 1 of 13
+    rewordings, 0 of the tricks. I widened it (anchored to commands at the start of a sentence,
+    to avoid boilerplate false alarms, plus undoing spaced-out letters and leetspeak). Then I
+    wrote 18 fresh plants, as varied as I could, before touching it again: it caught 3.
+  - I did not patch against that second batch. Doing so would turn it into another training set,
+    and keyword matching is an arms race I cannot win. Known misses are written into the tests
+    (other languages, text split into fragments, fully spaced letters, creative phrasing).
+- Conclusion: this reliably catches the standard copy-paste injections and blocks the exact
+  failure seen in the eval, but it does not stop a determined or creative attacker. It is one
+  layer next to the fenced untrusted input, the model having no tools, and the verifier.
+- Ideas that do not depend on wording, not built: refuse questions that ask for an overall
+  verdict ("is it safe to sign?"), which also fits the no-legal-advice rule; and withhold any
+  model-written summary or answer that declares the contract safe, approved or risk-free.
+- Status: built (detector, masking, warning in the interface, tests, eval metrics).
 
 ## D11. The interface
 - Layout (options: two panes with findings left and the document right; a single
