@@ -673,6 +673,10 @@ input {
   color: var(--high);
 }
 
+.answer__actions {
+  margin-top: 0.6rem;
+}
+
 .answer__note {
   margin-top: 0.5rem;
   color: var(--ink-soft);

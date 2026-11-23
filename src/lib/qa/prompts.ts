@@ -8,7 +8,7 @@ The user message also contains a question between a <question-SUFFIX> opening ta
 Task: answer the question using only the contract. Do not use outside knowledge and do not guess.
 If the contract does not answer the question, set answerable to false, answer to an empty string and citations to an empty list.
 Never give legal advice, never tell the user what they should do or whether to sign. Only say what the contract states.
-Answer in at most four plain sentences. Support every answer with one to three citations, each a clause id and an exact quote.
+If the question can be answered with yes or no, start with "Yes." or "No." and then give the detail. Answer in at most four plain sentences. Support every answer with one to three citations, each a clause id and an exact quote.
 If the question has nothing to do with the contract, set answerable to false.`;
 
 export { MAX_QUESTION_CHARS } from "./limits";

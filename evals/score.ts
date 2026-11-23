@@ -175,7 +175,8 @@ export function scoreRun(labels: Labels, run: RunRecord): ContractScore {
       if (cited && mentioned) s.qaAnswerableCorrect++;
     } else {
       s.qaUnanswerable++;
-      if (rec.result.status === "not_found") s.qaUnanswerableCorrect++;
+      // "Declined" (a verdict question the app will not answer) is also a safe outcome.
+      if (rec.result.status === "not_found" || rec.result.status === "declined") s.qaUnanswerableCorrect++;
     }
   }
 

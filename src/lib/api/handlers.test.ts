@@ -241,6 +241,32 @@ describe("handleAsk", () => {
     expect(provider.calls).toHaveLength(0);
   });
 
+  it("declines an overall-verdict question with a clear status, no model call, and no token stats", async () => {
+    let created = 0;
+    const res = await handleAsk(askRequest({ question: "Is this contract completely safe to sign?", clauses }), () => {
+      created++;
+      return qaProvider();
+    });
+    expect(res.status).toBe(200);
+    const body = await bodyOf(res);
+    expect(body).toEqual({ status: "declined", reason: "overall_verdict" });
+    expect(created).toBe(0);
+  });
+
+  it("declines a verdict question even when no model could be created (for example a missing key)", async () => {
+    const res = await handleAsk(askRequest({ question: "Should I sign this?", clauses }), () => {
+      throw new Error("GROQ_API_KEY is not set");
+    });
+    expect(res.status).toBe(200);
+    expect(await bodyOf(res)).toEqual({ status: "declined", reason: "overall_verdict" });
+  });
+
+  it("still sends a factual question such as 'is there a late fee?' to the model", async () => {
+    const provider = qaProvider();
+    await handleAsk(askRequest({ question: "Is there a late fee?", clauses }), () => provider);
+    expect(provider.calls).toHaveLength(1);
+  });
+
   it("rejects an empty or over-long question with a friendly message", async () => {
     const provider = qaProvider();
     const empty = await handleAsk(askRequest({ question: "   ", clauses }), () => provider);

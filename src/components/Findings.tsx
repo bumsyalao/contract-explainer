@@ -128,7 +128,7 @@ export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props)
       )}
       {tab === "ask" && (
         <div role="tabpanel" id={`${base}-panel-ask`} aria-labelledby={`${base}-tab-ask`} className="tabpanel">
-          <AskPanel data={data} saved={saved} liveEnabled={liveEnabled} activeKey={activeKey} onShow={onShow} />
+          <AskPanel data={data} saved={saved} liveEnabled={liveEnabled} activeKey={activeKey} onShow={onShow} onGoToRisks={() => setTab("risks")} />
         </div>
       )}
 

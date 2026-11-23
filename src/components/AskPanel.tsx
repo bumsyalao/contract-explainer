@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import type { AnalyzeResponse, AskResponse, SampleResponse } from "@/lib/api/types";
 import { MAX_QUESTION_CHARS } from "@/lib/qa/limits";
+import { VERDICT_DECLINE_MESSAGE } from "@/lib/qa/verdict";
 import { askQuestion, ApiClientError } from "@/lib/ui/client";
 import type { Selection } from "@/lib/ui/highlight";
 import { JumpLink } from "./JumpLink";
@@ -22,6 +23,7 @@ type Props = {
   liveEnabled: boolean;
   activeKey: string | null;
   onShow: (key: string, sel: Selection) => void;
+  onGoToRisks: () => void;
 };
 
 const GENERIC_SUGGESTIONS = [
@@ -30,7 +32,7 @@ const GENERIC_SUGGESTIONS = [
   "Who owns the work I produce?",
 ];
 
-export function AskPanel({ data, saved, liveEnabled, activeKey, onShow }: Props) {
+export function AskPanel({ data, saved, liveEnabled, activeKey, onShow, onGoToRisks }: Props) {
   const [text, setText] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const nextId = useRef(1);
@@ -125,6 +127,7 @@ export function AskPanel({ data, saved, liveEnabled, activeKey, onShow }: Props)
                   itemId={item.id}
                   activeKey={activeKey}
                   onShow={onShow}
+                  onGoToRisks={onGoToRisks}
                 />
               )}
             </li>
@@ -141,13 +144,27 @@ function Result({
   itemId,
   activeKey,
   onShow,
+  onGoToRisks,
 }: {
   result: AskResponse;
   saved: boolean;
   itemId: number;
   activeKey: string | null;
   onShow: (key: string, sel: Selection) => void;
+  onGoToRisks: () => void;
 }) {
+  if (result.status === "declined") {
+    return (
+      <>
+        <p className="answer__text">{VERDICT_DECLINE_MESSAGE}</p>
+        <p className="answer__actions">
+          <button type="button" className="btn btn--quiet" onClick={onGoToRisks}>
+            Open the Risks tab
+          </button>
+        </p>
+      </>
+    );
+  }
   if (result.status === "not_found") {
     return (
       <>

@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { MAX_PAGES, MAX_BYTES } from "@/lib/pdf/extract";
 import type { LlmProvider } from "@/lib/llm/types";
-import { answerQuestion } from "@/lib/qa/answer";
+import { answerQuestion, validateQuestion } from "@/lib/qa/answer";
+import { isVerdictQuestion } from "@/lib/qa/verdict";
 import { MAX_QUESTION_CHARS } from "@/lib/qa/prompts";
 import { analyzeDocument } from "@/lib/pipeline/analyze-document";
 import { BadRequestError, describeForLog, LiveDisabledError, toApiError } from "./errors";
@@ -92,7 +93,13 @@ export async function handleAsk(
       throw new BadRequestError(`Please keep the question under ${MAX_QUESTION_CHARS} characters.`);
     }
 
-    const result = await answerQuestion(getProvider(), parsed.data.clauses, parsed.data.question);
+    // Decline a verdict question before anything else, so it needs no model, no key and no quota.
+    const question = validateQuestion(parsed.data.question);
+    if (isVerdictQuestion(question)) {
+      return Response.json({ status: "declined", reason: "overall_verdict" }, { headers: JSON_HEADERS });
+    }
+
+    const result = await answerQuestion(getProvider(), parsed.data.clauses, question);
     // Do not send token stats to the browser.
     const { stats: _stats, ...publicResult } = result;
     void _stats;

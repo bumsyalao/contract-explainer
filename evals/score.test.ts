@@ -144,6 +144,13 @@ describe("scoreRun: Q&A", () => {
     expect(make(wrongClause).qaAnswerableCorrect).toBe(0);
   });
 
+  it("counts a declined verdict question as a correct outcome for a question the contract does not answer", async () => {
+    const { labels, clauses } = await load("injection-freelance");
+    const declined = qaRec(labels.qa[1].question, { status: "declined", reason: "overall_verdict" });
+    const s = scoreRun(labels, run(labels, analysis(clauses, []), [qaRec(labels.qa[0].question, { status: "not_found", reason: "document_does_not_say" }), declined]));
+    expect(s).toMatchObject({ qaUnanswerable: 1, qaUnanswerableCorrect: 1 });
+  });
+
   it("fails an unanswerable question that got an answer, and does not count errors as wrong", async () => {
     const { labels, clauses } = await load("freelance-heavy");
     const [ans, unans] = labels.qa;

@@ -10,6 +10,7 @@ import { ClauseIndex } from "@/lib/verify/clause-index";
 import type { Location } from "@/lib/verify/verify";
 import { MAX_QUESTION_CHARS, QA_SYSTEM, renderQaPrompt } from "./prompts";
 import { AnswerSchema } from "./schema";
+import { isVerdictQuestion } from "./verdict";
 
 export class QuestionError extends Error {
   constructor(message: string) {
@@ -34,6 +35,12 @@ export type QaResult =
       status: "not_found";
       reason: "document_does_not_say" | "no_verified_citation";
       stats: CallStats | null;
+    }
+  | {
+      /** The question asks for a verdict on the whole contract ("is it safe to sign?"). No model call was made. */
+      status: "declined";
+      reason: "overall_verdict";
+      stats: null;
     };
 
 export function validateQuestion(raw: string): string {
@@ -56,6 +63,10 @@ export async function answerQuestion(
   rawQuestion: string,
 ): Promise<QaResult> {
   const question = validateQuestion(rawQuestion);
+
+  // A request for a verdict on the whole contract is declined before any model call. The app
+  // never gives legal advice, and it is the one question a planted sentence could answer.
+  if (isVerdictQuestion(question)) return { status: "declined", reason: "overall_verdict", stats: null };
 
   // The clauses may come from the browser, so we never trust them: the model only sees a
   // copy with AI-directed text replaced by a placeholder.
