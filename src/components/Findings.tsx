@@ -4,6 +4,7 @@ import { useId, useState, type KeyboardEvent } from "react";
 import type { AnalyzeResponse, SampleResponse } from "@/lib/api/types";
 import type { Selection } from "@/lib/ui/highlight";
 import { AskPanel } from "./AskPanel";
+import { JumpLink } from "./JumpLink";
 import { KeyTerms } from "./KeyTerms";
 import { RiskList } from "./RiskList";
 
@@ -69,6 +70,33 @@ export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props)
           {!data.structured && " No numbered clauses were found, so the text is split into sections."}
         </p>
       </header>
+
+      {data.aiDirectedText.length > 0 && (
+        <section className="aiwarn" aria-labelledby={`${base}-aiwarn`}>
+          <h3 id={`${base}-aiwarn`} className="aiwarn__title">
+            This contract contains text aimed at AI readers
+          </h3>
+          <p className="aiwarn__text">
+            Some wording in the document tries to give orders to an AI, such as hiding risks or calling the contract
+            safe. Treat that as a red flag about whoever wrote it. We kept it away from the AI, so it did not affect
+            the findings below. We find this with fixed patterns, so a reworded version could be missed.
+          </p>
+          <ul className="aiwarn__list">
+            {data.aiDirectedText.map((f, i) => {
+              const key = `ai:${f.clause_id}:${f.start}:${i}`;
+              const show = () => onShow(key, { page: f.page, start: f.start, end: f.end });
+              return (
+                <li key={key} className="aiwarn__item" data-active={activeKey === key}>
+                  <blockquote className="quote">{f.quote}</blockquote>
+                  <p className="aiwarn__where">
+                    <JumpLink clauseId={f.clause_id} page={f.page} onClick={show} />
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <div className="tabs" role="tablist" aria-label="Findings" onKeyDown={onKeyDown}>
         {tabs.map((t) => (
