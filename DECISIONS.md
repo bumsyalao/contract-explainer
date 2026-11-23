@@ -256,7 +256,7 @@ are "decided, not built yet".
   navy ink. Findings are ruled rows with a severity edge, not cards. Severity is
   written in words ("High risk"), never colour alone. Type is a printed-contract serif
   for the contract and headings, and the system sans for controls. System font stacks
-  keep the build free of font downloads. Dark mode and reduced motion are supported.
+  keep the build free of font downloads. The app is always light, even when a device is set to dark mode, by the owner's choice. Reduced motion is respected.
 - Trust copy shown in the interface: "Explains and flags. Not legal advice." in the top
   bar and again under the findings, "Use made-up or sample contracts only" on the
   landing screen, and a line saying every highlighted quote was found in the document

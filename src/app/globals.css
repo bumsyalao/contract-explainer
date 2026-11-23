@@ -21,25 +21,7 @@
   --font-doc: "Iowan Old Style", "Palatino Linotype", Palatino, Charter, "Book Antiqua", Georgia, serif;
 
   --bar-h: 3.25rem;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --desk: #11151c;
-    --panel: #171c25;
-    --paper: #1f2632;
-    --ink: #e7ebf1;
-    --ink-soft: #aab3c2;
-    --line: #2d3646;
-    --marker: #6b5d12;
-    --action: #3cb4b0;
-    --action-ink: #08201f;
-    --high: #ff8a80;
-    --medium: #f2b94b;
-    --low: #8fb7e8;
-    --focus: #8ab4ff;
-  }
+  color-scheme: light;
 }
 
 *,
