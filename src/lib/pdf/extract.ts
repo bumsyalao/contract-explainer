@@ -53,7 +53,8 @@ export async function extractPages(
 
   let pdf;
   try {
-    pdf = await getDocumentProxy(data);
+    // pdf.js takes ownership of the buffer it is given (it detaches it), so hand it a copy.
+    pdf = await getDocumentProxy(data.slice());
   } catch {
     throw new ExtractError(
       "NOT_A_PDF",

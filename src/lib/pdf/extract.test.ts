@@ -26,6 +26,14 @@ describe("extractPages", () => {
     expect(doc.pages[0].text).not.toContain("NON-COMPETE");
   });
 
+  it("does not consume or detach the caller's bytes", async () => {
+    const bytes = new Uint8Array(await readFile(samplePath));
+    await extractPages(bytes);
+    expect(bytes.byteLength).toBeGreaterThan(0);
+    const again = await extractPages(bytes); // would throw if the buffer had been detached
+    expect(again.pageCount).toBe(SAMPLE_PAGES.length);
+  });
+
   it("rejects a PDF with no selectable text as scanned", async () => {
     const blank = await PDFDocument.create();
     blank.addPage();
