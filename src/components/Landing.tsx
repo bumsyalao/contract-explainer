@@ -4,13 +4,14 @@ import { useId, useState } from "react";
 import { MAX_UPLOAD_MB } from "@/lib/ui/client";
 
 type Props = {
+  liveEnabled: boolean;
   loading: string | null;
   error: { message: string; rateLimited: boolean } | null;
   onFile: (file: File) => void;
   onSample: () => void;
 };
 
-export function Landing({ loading, error, onFile, onSample }: Props) {
+export function Landing({ liveEnabled, loading, error, onFile, onSample }: Props) {
   const inputId = useId();
   const [dragging, setDragging] = useState(false);
 
@@ -44,43 +45,52 @@ export function Landing({ loading, error, onFile, onSample }: Props) {
               </button>
             </div>
 
+            {liveEnabled ? (
+              <>
             <div
-              className={`drop${dragging ? " drop--over" : ""}`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragging(false);
-                const file = e.dataTransfer.files[0];
-                if (file) onFile(file);
-              }}
-            >
-              <input
-                id={inputId}
-                className="drop__input"
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (file) onFile(file);
-                }}
-              />
-              <label htmlFor={inputId} className="btn btn--secondary">
-                Choose a PDF
-              </label>
-              <p className="drop__hint">
-                or drop one here. Text-based PDFs only, up to {MAX_UPLOAD_MB} MB. Scanned documents are not supported yet.
+                  className={`drop${dragging ? " drop--over" : ""}`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                  }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragging(false);
+                    const file = e.dataTransfer.files[0];
+                    if (file) onFile(file);
+                  }}
+                >
+                  <input
+                    id={inputId}
+                    className="drop__input"
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (file) onFile(file);
+                    }}
+                  />
+                  <label htmlFor={inputId} className="btn btn--secondary">
+                    Choose a PDF
+                  </label>
+                  <p className="drop__hint">
+                    or drop one here. Text-based PDFs only, up to {MAX_UPLOAD_MB} MB. Scanned documents are not supported yet.
+                  </p>
+                </div>
+    
+                <p className="warning">
+                  <strong>Use made-up or sample contracts only.</strong> This public demo sends your file to a free AI
+                  service. Do not upload a real contract or anything with personal details.
+                </p>
+              </>
+            ) : (
+              <p className="warning">
+                <strong>Uploads are switched off on this demo.</strong> The sample contract shows everything the app
+                does, using a saved result, so it works without any live AI calls.
               </p>
-            </div>
-
-            <p className="warning">
-              <strong>Use made-up or sample contracts only.</strong> This public demo sends your file to a free AI
-              service. Do not upload a real contract or anything with personal details.
-            </p>
+            )}
           </>
         )}
       </div>

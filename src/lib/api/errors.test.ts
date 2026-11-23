@@ -4,7 +4,7 @@ import { InvalidModelOutputError } from "@/lib/analysis/call";
 import { InvalidJsonError, ProviderError, RateLimitError } from "@/lib/llm/types";
 import { ExtractError } from "@/lib/pdf/extract";
 import { QuestionError } from "@/lib/qa/answer";
-import { BadRequestError, describeForLog, toApiError } from "./errors";
+import { BadRequestError, describeForLog, LiveDisabledError, toApiError } from "./errors";
 
 const code = (e: unknown) => toApiError(e).body.error.code;
 const status = (e: unknown) => toApiError(e).status;
@@ -22,6 +22,12 @@ describe("toApiError", () => {
     expect([status(new QuestionError("q")), code(new QuestionError("q"))]).toEqual([400, "BAD_QUESTION"]);
     expect([status(new BadRequestError("b")), code(new BadRequestError("b"))]).toEqual([400, "BAD_REQUEST"]);
     expect([status(new BadRequestError("b", "FILE_TOO_LARGE")), code(new BadRequestError("b", "FILE_TOO_LARGE"))]).toEqual([413, "FILE_TOO_LARGE"]);
+  });
+
+  it("maps the kill switch to a 503 that points to the sample", () => {
+    const r = toApiError(new LiveDisabledError());
+    expect([r.status, r.body.error.code]).toEqual([503, "LIVE_DISABLED"]);
+    expect(r.body.error.message).toContain("sample");
   });
 
   it("gives a wait time for short rate limits", () => {

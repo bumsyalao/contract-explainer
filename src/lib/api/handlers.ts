@@ -4,7 +4,8 @@ import type { LlmProvider } from "@/lib/llm/types";
 import { answerQuestion } from "@/lib/qa/answer";
 import { MAX_QUESTION_CHARS } from "@/lib/qa/prompts";
 import { analyzeDocument } from "@/lib/pipeline/analyze-document";
-import { BadRequestError, describeForLog, toApiError } from "./errors";
+import { BadRequestError, describeForLog, LiveDisabledError, toApiError } from "./errors";
+import { isLiveEnabled } from "./live";
 
 const JSON_HEADERS = { "Cache-Control": "no-store" };
 
@@ -18,8 +19,13 @@ function errorResponse(err: unknown): Response {
 /** Multipart overhead allowance on top of the PDF size cap. */
 const MULTIPART_SLACK_BYTES = 64 * 1024;
 
-export async function handleAnalyze(req: Request, getProvider: () => LlmProvider): Promise<Response> {
+export async function handleAnalyze(
+  req: Request,
+  getProvider: () => LlmProvider,
+  live: () => boolean = isLiveEnabled,
+): Promise<Response> {
   try {
+    if (!live()) throw new LiveDisabledError();
     const declared = Number(req.headers.get("content-length") ?? "0");
     if (declared > MAX_BYTES + MULTIPART_SLACK_BYTES) {
       throw new BadRequestError(`That file is larger than ${MAX_BYTES / 1024 / 1024} MB. Try a smaller PDF.`, "FILE_TOO_LARGE");
@@ -61,8 +67,13 @@ const AskBodySchema = z.object({
 
 const MAX_ASK_BODY_BYTES = 256 * 1024;
 
-export async function handleAsk(req: Request, getProvider: () => LlmProvider): Promise<Response> {
+export async function handleAsk(
+  req: Request,
+  getProvider: () => LlmProvider,
+  live: () => boolean = isLiveEnabled,
+): Promise<Response> {
   try {
+    if (!live()) throw new LiveDisabledError();
     const declared = Number(req.headers.get("content-length") ?? "0");
     if (declared > MAX_ASK_BODY_BYTES) throw new BadRequestError("That request is too large.");
     const text = await req.text();

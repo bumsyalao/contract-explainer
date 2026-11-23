@@ -10,6 +10,7 @@ import { RiskList } from "./RiskList";
 type Props = {
   data: AnalyzeResponse;
   saved: SampleResponse["qa"] | null;
+  liveEnabled: boolean;
   activeKey: string | null;
   onShow: (key: string, sel: Selection) => void;
 };
@@ -23,7 +24,7 @@ const DOC_TYPES: Record<string, string> = {
 
 type TabId = "risks" | "terms" | "ask";
 
-export function Findings({ data, saved, activeKey, onShow }: Props) {
+export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props) {
   const [tab, setTab] = useState<TabId>("risks");
   const base = useId();
   const { keyTerms, flags, droppedByReason } = data;
@@ -99,7 +100,7 @@ export function Findings({ data, saved, activeKey, onShow }: Props) {
       )}
       {tab === "ask" && (
         <div role="tabpanel" id={`${base}-panel-ask`} aria-labelledby={`${base}-tab-ask`} className="tabpanel">
-          <AskPanel data={data} saved={saved} activeKey={activeKey} onShow={onShow} />
+          <AskPanel data={data} saved={saved} liveEnabled={liveEnabled} activeKey={activeKey} onShow={onShow} />
         </div>
       )}
 

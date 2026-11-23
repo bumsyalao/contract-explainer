@@ -13,6 +13,7 @@ export type ApiErrorCode =
   | "BAD_REQUEST"
   | "BAD_QUESTION"
   | "RATE_LIMITED"
+  | "LIVE_DISABLED"
   | "MODEL_OUTPUT_INVALID"
   | "MODEL_UNAVAILABLE"
   | "INTERNAL";
@@ -20,6 +21,13 @@ export type ApiErrorCode =
 export type ApiErrorBody = {
   error: { code: ApiErrorCode; message: string; retryAfterSeconds?: number };
 };
+
+export class LiveDisabledError extends Error {
+  constructor() {
+    super("Live analysis is switched off on this demo.");
+    this.name = "LiveDisabledError";
+  }
+}
 
 export class BadRequestError extends Error {
   constructor(
@@ -41,6 +49,9 @@ export function toApiError(err: unknown): { status: number; body: ApiErrorBody }
     body: { error: { code, message, ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}) } },
   });
 
+  if (err instanceof LiveDisabledError) {
+    return make(503, "LIVE_DISABLED", "Live analysis is switched off on this demo. Try the sample contract instead.");
+  }
   if (err instanceof BadRequestError) return make(err.code === "FILE_TOO_LARGE" ? 413 : 400, err.code, err.message);
   if (err instanceof ExtractError) {
     const map = {

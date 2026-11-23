@@ -131,6 +131,37 @@ describe("handleAnalyze", () => {
   });
 });
 
+describe("kill switch (LIVE_ANALYSIS=off)", () => {
+  const off = () => false;
+
+  it("turns uploads into a friendly 503 without reading the file or creating a provider", async () => {
+    let created = 0;
+    const res = await handleAnalyze(uploadRequest(samplePdf), () => { created++; return analysisProvider(); }, off);
+    expect(res.status).toBe(503);
+    const body = await bodyOf(res);
+    expect(body.error.code).toBe("LIVE_DISABLED");
+    expect(body.error.message).toContain("sample");
+    expect(created).toBe(0);
+  });
+
+  it("turns questions into the same 503 without calling the model", async () => {
+    let created = 0;
+    const res = await handleAsk(
+      new Request("http://localhost/api/ask", { method: "POST", body: JSON.stringify({ question: "q?", clauses }) }),
+      () => { created++; return new MockProvider(() => ({})); },
+      off,
+    );
+    expect(res.status).toBe(503);
+    expect((await bodyOf(res)).error.code).toBe("LIVE_DISABLED");
+    expect(created).toBe(0);
+  });
+
+  it("still works when live analysis is on", async () => {
+    const res = await handleAnalyze(uploadRequest(samplePdf), () => analysisProvider(), () => true);
+    expect(res.status).toBe(200);
+  });
+});
+
 const askRequest = (body: unknown, headers: Record<string, string> = {}) =>
   new Request("http://localhost/api/ask", { method: "POST", body: typeof body === "string" ? body : JSON.stringify(body), headers });
 

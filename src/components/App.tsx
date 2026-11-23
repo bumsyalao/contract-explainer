@@ -17,7 +17,7 @@ type Phase =
       saved: SampleResponse["qa"] | null;
     };
 
-export function App() {
+export function App({ liveEnabled }: { liveEnabled: boolean }) {
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   // Lets us ignore a slow response if the person has started something else.
   const latest = useRef(0);
@@ -80,9 +80,10 @@ export function App() {
       </header>
 
       {phase.kind === "ready" ? (
-        <Workspace key={phase.name} data={phase.data} saved={phase.saved} />
+        <Workspace key={phase.name} data={phase.data} saved={phase.saved} liveEnabled={liveEnabled} />
       ) : (
         <Landing
+          liveEnabled={liveEnabled}
           loading={phase.kind === "loading" ? phase.what : null}
           error={phase.kind === "idle" ? (phase.error ?? null) : null}
           onFile={onFile}

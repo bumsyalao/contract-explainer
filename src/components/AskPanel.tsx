@@ -19,6 +19,7 @@ type Item = {
 type Props = {
   data: AnalyzeResponse;
   saved: SampleResponse["qa"] | null;
+  liveEnabled: boolean;
   activeKey: string | null;
   onShow: (key: string, sel: Selection) => void;
 };
@@ -29,7 +30,7 @@ const GENERIC_SUGGESTIONS = [
   "Who owns the work I produce?",
 ];
 
-export function AskPanel({ data, saved, activeKey, onShow }: Props) {
+export function AskPanel({ data, saved, liveEnabled, activeKey, onShow }: Props) {
   const [text, setText] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const nextId = useRef(1);
@@ -72,27 +73,34 @@ export function AskPanel({ data, saved, activeKey, onShow }: Props) {
 
   return (
     <div className="ask">
+      {liveEnabled ? (
       <form className="ask__form" onSubmit={onSubmit}>
-        <label className="ask__label" htmlFor="question">
-          Ask about this contract
-        </label>
-        <p className="ask__hint">Answers come only from the document and quote the words they rely on.</p>
-        <div className="ask__row">
-          <input
-            id="question"
-            className="ask__input"
-            type="text"
-            value={text}
-            maxLength={MAX_QUESTION_CHARS}
-            placeholder="For example: Can I end this early?"
-            onChange={(e) => setText(e.target.value)}
-            autoComplete="off"
-          />
-          <button type="submit" className="btn btn--primary" disabled={busy || text.trim() === ""}>
-            Ask
-          </button>
+          <label className="ask__label" htmlFor="question">
+            Ask about this contract
+          </label>
+          <p className="ask__hint">Answers come only from the document and quote the words they rely on.</p>
+          <div className="ask__row">
+            <input
+              id="question"
+              className="ask__input"
+              type="text"
+              value={text}
+              maxLength={MAX_QUESTION_CHARS}
+              placeholder="For example: Can I end this early?"
+              onChange={(e) => setText(e.target.value)}
+              autoComplete="off"
+            />
+            <button type="submit" className="btn btn--primary" disabled={busy || text.trim() === ""}>
+              Ask
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="ask__form">
+          <p className="ask__label">Ask about this contract</p>
+          <p className="ask__hint">Custom questions are switched off on this demo. Pick one of the saved questions below.</p>
         </div>
-      </form>
+      )}
 
       <div className="chips" aria-label="Suggested questions">
         {suggestions.map((s) => (
