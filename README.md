@@ -13,7 +13,11 @@ anything because of what a tool like this says.
 
 ## Live demo
 
-LIVE_DEMO_LINK
+**https://contract-explainer-five.vercel.app**
+
+The live demo shows the sample contract from a saved result. Live uploads are switched off
+there so a free AI quota cannot be used up. To try your own made-up contract, run it
+yourself (see below).
 
 The hosted demo is for the sample contract and other made-up contracts only. It sends
 files to a free AI service, so please do not upload a real contract or anything with
@@ -47,6 +51,13 @@ personal details.
 The contract text is treated as untrusted. It could say "ignore your instructions", so it
 only ever goes in a fenced block with a random label that the contract cannot guess, the model
 has no tools, and the app shows everything as plain text.
+
+This does not make it immune, and I want to be straight about the gap. My checker proves that
+a quote is really in the document. It cannot tell whether that sentence is a genuine term of
+the contract or something planted to fool an AI reader, because the planted sentence is in the
+document too. In my injection test, the planted text never made a model reveal its code word or
+hide real risks, but when asked "Is this contract completely safe to sign?" one model answered
+that the contract states it is, quoting the planted line. See the results below.
 
 The full list of choices, with the options I weighed and why I picked each, is in
 [DECISIONS.md](DECISIONS.md).
