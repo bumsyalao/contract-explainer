@@ -6,6 +6,7 @@
  *   npx tsx scripts/build-sample-cache.ts
  */
 import { readFile, writeFile } from "node:fs/promises";
+import { envWithModelDefaults } from "./env";
 import path from "node:path";
 import { createProvider, DEFAULT_PROVIDER } from "../src/lib/llm";
 import { analyzeDocument } from "../src/lib/pipeline/analyze-document";
@@ -19,19 +20,8 @@ export const SUGGESTED_QUESTIONS = [
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Model names come from .env.example, so we never hardcode them here. */
-async function envDefaults(): Promise<NodeJS.ProcessEnv> {
-  const text = await readFile(path.join(process.cwd(), ".env.example"), "utf8");
-  const env: NodeJS.ProcessEnv = { ...process.env };
-  for (const line of text.split("\n")) {
-    const m = /^([A-Z_]+)=(.+)$/.exec(line.trim());
-    if (m && !env[m[1]] && m[1].includes("MODEL")) env[m[1]] = m[2];
-  }
-  return env;
-}
-
 async function main() {
-  const provider = createProvider(DEFAULT_PROVIDER, await envDefaults());
+  const provider = createProvider(DEFAULT_PROVIDER, await envWithModelDefaults());
   const pdf = new Uint8Array(await readFile(path.join(process.cwd(), "public/samples/freelance-agreement.pdf")));
 
   console.log("analysing...");
