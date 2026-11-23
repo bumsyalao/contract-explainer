@@ -131,6 +131,33 @@ are "decided, not built yet".
   free tier has no dollar cost.
 - Status: not built yet.
 
+## D10. API shape, statelessness and the public demo
+- Q&A state (options: the browser sends the clauses back with each question; the
+  browser re-uploads the PDF; a signed token holding the clauses). Chosen: the browser
+  holds the clauses and sends them back. The server stores nothing. The payload is
+  validated (shape, page range, size caps) and only used as prompt text and as the
+  source for checking citations, so a tampered payload only affects the person who sent it.
+- Routes: `POST /api/analyze` (multipart PDF), `POST /api/ask` (JSON), `GET /api/sample`
+  (static cached result). Handlers take an injectable provider, so they are tested
+  without network.
+- Safety rules, all tested: oversized uploads are rejected from their declared length
+  before being read; malformed requests never reach the model; upstream error text is
+  never forwarded (it can echo the contract); dropped quotes are never returned, only
+  counts; configuration problems return a generic message; logs hold error names and
+  codes, never messages or contract text.
+- Cached sample: the demo serves a stored result for the synthetic sample, with three
+  suggested questions and answers, so it needs no live calls. A test fails if the cache
+  stops matching the sample PDF. The cache holds one real run, including its misses.
+- Checked against a production build and real HTTP: the analyse route took about 6.6 s
+  and verified every quote, and ask took about 1 s.
+- Rate limits, checked for real: two analyses fired at once both succeeded, but one took
+  25 s because the retry backoff caught a 429. All visitors share one free-tier budget
+  (about 8K tokens per minute), so a few simultaneous users will see "busy" messages.
+- Public abuse: anyone could spend the free quota. There is no database, so a proper
+  per-visitor limit needs a shared store. Not built yet. Options for the deploy step:
+  Vercel's firewall rate limiting, or keeping live analysis behind a visible warning.
+- Status: built.
+
 ## Future enhancements
 - Scanned PDFs through OCR.
 - A labelled local mode (for example Ollama) for real documents, and better redaction.
