@@ -47,6 +47,35 @@ export type ContractScore = {
   latencyMs: number;
 };
 
+
+const ONES = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+const TENS = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+
+/** 24 -> "twenty-four". Enough for the small numbers contracts use. */
+export function numberToWords(n: number): string | null {
+  if (!Number.isInteger(n) || n < 0 || n > 999) return null;
+  if (n < 20) return ONES[n];
+  if (n < 100) return n % 10 === 0 ? TENS[n / 10] : `${TENS[Math.floor(n / 10)]}-${ONES[n % 10]}`;
+  const rest = n % 100;
+  return `${ONES[Math.floor(n / 100)]} hundred${rest ? ` ${numberToWords(rest)}` : ""}`;
+}
+
+/**
+ * Does the answer mention the expected phrase? A correct answer may spell a number out
+ * ("two years" for "2 years"), so a plain-digit phrase also matches its words form.
+ */
+export function mentions(answer: string, phrase: string): boolean {
+  const a = answer.toLowerCase();
+  const p = phrase.toLowerCase();
+  if (a.includes(p)) return true;
+  const m = /^(\d{1,3})(?=\s|$)/.exec(p);
+  if (m) {
+    const words = numberToWords(Number(m[1]));
+    if (words && a.includes(words + p.slice(m[1].length))) return true;
+  }
+  return false;
+}
+
 function clauseContaining(clauses: Clause[], anchor: string): Clause | null {
   for (const c of clauses) {
     if (new SearchableText(c.text).locate(anchor).ok) return c;
@@ -137,9 +166,9 @@ export function scoreRun(labels: Labels, run: RunRecord): ContractScore {
       const r = rec.result;
       const cited =
         r.status === "answered" && r.citations.some((c) => sameClause(clauseOfFlag(clauses, c), holder));
-      const mentions =
-        r.status === "answered" && (q.mustMention ?? []).every((m) => r.answer.toLowerCase().includes(m.toLowerCase()));
-      if (cited && mentions) s.qaAnswerableCorrect++;
+      const mentioned =
+        r.status === "answered" && (q.mustMention ?? []).every((m) => mentions(r.answer, m));
+      if (cited && mentioned) s.qaAnswerableCorrect++;
     } else {
       s.qaUnanswerable++;
       if (rec.result.status === "not_found") s.qaUnanswerableCorrect++;

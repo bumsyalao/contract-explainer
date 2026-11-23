@@ -6,7 +6,7 @@ import { extractPages } from "@/lib/pdf/extract";
 import { segment, type Clause } from "@/lib/segment/segment";
 import { SearchableText } from "@/lib/verify/locate";
 import type { Labels } from "./contracts";
-import { PRICES, renderTable, scoreRun, summarize } from "./score";
+import { mentions, numberToWords, PRICES, renderTable, scoreRun, summarize } from "./score";
 import type { RunRecord } from "./types";
 
 const dir = path.join(process.cwd(), "evals/contracts");
@@ -224,5 +224,31 @@ describe("summarize and renderTable", () => {
     expect(lines).toHaveLength(4);
     expect(lines[2]).toContain("`openai/gpt-oss-120b`");
     expect(lines[2]).toContain("100%");
+  });
+});
+
+describe("mentions and numberToWords", () => {
+  it("spells small numbers", () => {
+    expect([0, 5, 12, 20, 24, 30, 60, 75, 90, 120, 180].map((n) => numberToWords(n))).toEqual([
+      "zero", "five", "twelve", "twenty", "twenty-four", "thirty", "sixty", "seventy-five", "ninety", "one hundred twenty", "one hundred eighty",
+    ]);
+    expect(numberToWords(1000)).toBeNull();
+    expect(numberToWords(-1)).toBeNull();
+  });
+
+  it("accepts the digits or the words for a leading number", () => {
+    expect(mentions("The duty lasts two years after the term.", "2 years")).toBe(true);
+    expect(mentions("Faults are fixed within five business days.", "5 business days")).toBe(true);
+    expect(mentions("Notice is 60 days.", "60 days")).toBe(true);
+    expect(mentions("Notice is sixty days.", "60 days")).toBe(true);
+    expect(mentions("A seventy-five day wait.", "75 day")).toBe(true);
+  });
+
+  it("still rejects a wrong number, and phrases without a leading number", () => {
+    expect(mentions("The duty lasts three years.", "2 years")).toBe(false);
+    expect(mentions("Notice is sixty days.", "30 days")).toBe(false);
+    expect(mentions("It is 3,000 a month.", "3,000")).toBe(true);
+    expect(mentions("You can use it in a portfolio.", "portfolio")).toBe(true);
+    expect(mentions("Not stated.", "portfolio")).toBe(false);
   });
 });
