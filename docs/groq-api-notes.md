@@ -52,3 +52,24 @@ limits for the account are on the console Limits page.
 - Data that is retained lives in US GCP buckets.
 - The docs do not say whether free-tier prompts are used for training.
   Keep the hosted path synthetic-only anyway, as planned.
+
+## Observed on first live calls (2026-11-23, one synthetic clause, 3 requests)
+- Key works. Strict structured output returned valid JSON on all three models.
+- All three quoted the source text verbatim.
+- Strict schema does not mean correct: for "5% of the monthly fee is deducted
+  for each week of delay", `gpt-oss-120b` summarised the late fee as
+  "5% per week", dropping "of the monthly fee". Explanations and key terms need
+  care, and the verifier only protects quotes, not summaries.
+- Token use for a ~270 token prompt: `gpt-oss-120b` 567 output tokens,
+  `gpt-oss-20b` 514, `qwen3.8-27b` 75. The gpt-oss models spend most of their
+  output on reasoning, which counts against the 8K tokens per minute and 200K
+  per day limits. A full contract run (two calls) may use a few thousand tokens.
+  Check the docs for a way to lower reasoning effort before relying on a
+  multi-contract eval run.
+- Latency: 120b 1.9 s, 20b 0.8 s, qwen 6.3 s for this tiny request.
+
+## Running code in the cloud session
+The key is injected by the session proxy and no variable holds it. Scripts that
+read `GROQ_API_KEY` need a placeholder value, and Node needs the proxy turned on:
+`GROQ_API_KEY=proxy-injected NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`.
+For Vercel, the real key must be added in the project's environment variables.
