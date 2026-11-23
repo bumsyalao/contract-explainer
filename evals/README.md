@@ -77,3 +77,16 @@ npx tsx evals/run.ts --provider groq-large --retry-failed
 npx tsx evals/report.ts                          # score everything into results/RESULTS.md
 npm test                                         # includes tests of the data and the scorer
 ```
+
+## Notes on the first full run
+
+- One run per model per contract. Three contracts failed once on an intermittent Groq error
+  (`json_validate_failed`), three failed on a free-tier rate limit (one of them twice), and one
+  question hit a rate limit, so its contract was run again whole. These were infrastructure
+  failures, not quality, so they were run again. The retry for
+  `json_validate_failed` was added between the first run and the reruns, so a few results come
+  from a version with that retry.
+- The qwen reruns used longer gaps between calls (up to 120 seconds) to stay under its limit.
+  Latency in the table is the time of the model calls themselves, not those gaps.
+- The first scoring pass marked correct answers wrong for spelling a number out ("two years").
+  I fixed the scorer, which is why `mentions` accepts digits or words.

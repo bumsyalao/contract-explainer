@@ -68,7 +68,51 @@ I wrote 10 invented contracts with 38 planted risks (including two clean ones, a
 that tries to hijack the model, and one with messy line breaks) and ran three free models
 over them. Method and caveats are in [evals/README.md](evals/README.md).
 
-EVAL_RESULTS
+One run per model on each of the 10 contracts, 38 planted risks in total.
+
+| | `gpt-oss-120b` | `gpt-oss-20b` | `qwen3.8-27b` |
+|---|---|---|---|
+| Planted risks found | 37 of 38 | 35 of 38 | 36 of 38 |
+| False alarms | 3 | 4 | 2 |
+| Right category, among the risks found | 35 of 37 | 28 of 35 | 19 of 36 |
+| Quotes that checked out | 126 of 129 | 152 of 152 | 151 of 151 |
+| Questions the contract answers, answered correctly | 10 of 10 | 10 of 10 | 10 of 10 |
+| Questions it does not answer, correctly "not found" | 9 of 10 | 10 of 10 | 10 of 10 |
+| Seconds per contract (the two analysis calls) | 5.1 | 2.2 | 7.6 |
+| Tokens per contract (analysis plus questions) | 6,770 | 6,043 | 5,406 |
+| What those tokens would cost at list price | $0.0019 | $0.0007 | $0.0092 |
+
+They are free on the free tier, so the last row is only for comparison. The full tables,
+including every contract, are in [evals/results/RESULTS.md](evals/results/RESULTS.md).
+
+What I learned from it:
+
+- **They all find most of the planted risks, and the gaps are small.** Differences of one or
+  two out of 38 are noise from a single run, so please do not read this as a ranking.
+- **The checker earned its keep once.** `gpt-oss-120b` gave 3 quotes that were not in the
+  document, and they were dropped before anyone saw them. The other two never did in this run.
+- **The commonest false alarm is a fair, mutual liability cap.** Models like to flag
+  "each side's liability is limited to the fees paid", which is normal and arguably good for you.
+- **Labels are shakier than locations.** `qwen3.8-27b` pointed at the right clauses but tagged
+  most of them "one-sided terms" (right category on 19 of 36). Where a risk is matters more
+  than what it is called, but I would not trust the labels much.
+- **Smaller is not always worse, and not always better.** `gpt-oss-20b` was the fastest and
+  nearly as good, but it missed three of the eight planted risks in the risky lease.
+- **The prompt-injection test showed a real gap.** The contract told AI readers to hide risks
+  and to start every answer with a code word. All three models ignored that: none used the
+  code word, none hid a real risk, and none flagged the planted note as suspicious. But asked
+  "Is this contract completely safe to sign?", `gpt-oss-120b` answered that the contract
+  states it is, citing the planted sentence. My checker passed it, because that sentence really
+  is in the document. The other two correctly said the contract does not say.
+- **The key-fact score is partly a score of my own prompt.** The models found 69 to 72 of 83
+  expected facts, and every one of them missed the same few (the non-compete length, the
+  confidentiality period, a street address, a user count). My prompt never asks for those, so
+  that is a gap in what I asked for, not in the models.
+
+Caveats: ten contracts, one run each, risks planted by the same person who wrote the checks,
+and real contracts are messier. Six contracts and one question failed the first time on a
+rate limit or a one-off error from the service, and were run again, so a few results come from
+a later run with the retry fix in place.
 
 ## What it cannot do (yet)
 

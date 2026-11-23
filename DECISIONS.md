@@ -129,7 +129,20 @@ are "decided, not built yet".
 - Metrics: flag recall and precision against hand labels, quote-verification pass
   rate, key-term accuracy, tokens, and latency. Cost is reported as tokens, because the
   free tier has no dollar cost.
-- Status: not built yet.
+- Status: built. Results are in `evals/results/RESULTS.md` and summarised in the README.
+- What the first run showed (one run each, so treat it as a picture, not a ranking):
+  all three found most of the 38 planted risks (37, 35 and 36), the checker dropped 3
+  invented quotes from the largest model, the commonest false alarm was a fair mutual
+  liability cap, and qwen labelled risks poorly even when it found the right clause.
+- Two things I got wrong and fixed: the scorer first marked "two years" wrong against
+  "2 years", and the key-fact check asks for facts my key-terms prompt never requests, so
+  every model missed the same ones. I report that score as it is and say why.
+- Injection finding, a real limit of design D5 and D6: the verifier proves a quote is in the
+  document, not that it is a genuine term. `gpt-oss-120b` answered "the contract states it is
+  completely safe to sign" from a planted sentence, and the verifier passed it because the
+  sentence is really there. A future fix would flag text that addresses AI readers.
+- I have not changed the default model. The differences are small enough that one run does not
+  justify it, so that is your call.
 
 ## D10. API shape, statelessness and the public demo
 - Q&A state (options: the browser sends the clauses back with each question; the
