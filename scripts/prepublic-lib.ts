@@ -63,3 +63,20 @@ export function hasEmDash(text: string): boolean {
 export function hasDemoLink(readme: string): boolean {
   return /https?:\/\/[^\s)]+\.(vercel\.app|vercel\.com)[^\s)]*/i.test(readme) && !/TODO|your-demo-link|coming soon/i.test(readme.split("Live demo")[1]?.slice(0, 200) ?? "");
 }
+
+/**
+ * Files that contain deliberately fake secrets so the scanner itself can be tested.
+ * They are skipped by the secret scan (and only by it). Keep this list as short as possible.
+ */
+export const SECRET_FIXTURE_FILES = new Set(["scripts/prepublic-lib.test.ts"]);
+
+/** Split the output of `git show -p` into one chunk per file, so fixtures can be skipped. */
+export function splitDiffByFile(diff: string): { path: string; text: string }[] {
+  const chunks: { path: string; text: string }[] = [];
+  for (const part of diff.split(/^diff --git /m)) {
+    if (!part.trim()) continue;
+    const header = /^a\/(.+?) b\//.exec(part);
+    chunks.push({ path: header ? header[1] : "", text: part });
+  }
+  return chunks;
+}

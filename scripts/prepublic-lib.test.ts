@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findPersonalData, findSecrets, hasDemoLink, hasEmDash } from "./prepublic-lib";
+import { findPersonalData, findSecrets, hasDemoLink, hasEmDash, SECRET_FIXTURE_FILES, splitDiffByFile } from "./prepublic-lib";
 
 describe("findSecrets", () => {
   it("catches real-looking keys and never prints them", () => {
@@ -55,5 +55,22 @@ describe("README checks", () => {
     expect(hasDemoLink("## Live demo\nhttps://contract-explainer-abc.vercel.app")).toBe(true);
     expect(hasDemoLink("## Live demo\nTODO add link")).toBe(false);
     expect(hasDemoLink("no link here")).toBe(false);
+  });
+});
+
+describe("splitDiffByFile and fixtures", () => {
+  const diff = [
+    "diff --git a/src/a.ts b/src/a.ts\n+const x = 1;",
+    "diff --git a/scripts/prepublic-lib.test.ts b/scripts/prepublic-lib.test.ts\n+fake",
+  ].join("\n");
+
+  it("splits a diff into one chunk per file with its path", () => {
+    expect(splitDiffByFile(diff).map((c) => c.path)).toEqual(["src/a.ts", "scripts/prepublic-lib.test.ts"]);
+  });
+
+  it("lets the scanner skip only the named fixture file", () => {
+    expect(SECRET_FIXTURE_FILES.has("scripts/prepublic-lib.test.ts")).toBe(true);
+    expect(SECRET_FIXTURE_FILES.has("src/a.ts")).toBe(false);
+    expect(SECRET_FIXTURE_FILES.size).toBe(1);
   });
 });
