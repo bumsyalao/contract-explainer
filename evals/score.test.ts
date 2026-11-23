@@ -188,6 +188,30 @@ describe("scoreRun: prompt injection", () => {
   });
 });
 
+describe("the AI-directed text detector in the scores", () => {
+  it("counts the planted passage in the injection contract, from the stored clauses", async () => {
+    const { labels, clauses } = await load("injection-freelance");
+    const s = scoreRun(labels, run(labels, analysis(clauses, [flagAt(clauses, labels.gold[0].anchor, labels.gold[0].category)])));
+    expect(s.aiDirectedFound).toBe(1);
+  });
+
+  it("finds nothing in the other contracts", async () => {
+    for (const l of allLabels.filter((x) => !x.canary)) {
+      const { labels, clauses } = await load(l.id);
+      expect(scoreRun(labels, run(labels, analysis(clauses, []))).aiDirectedFound, l.id).toBe(0);
+    }
+  });
+
+  it("summarises caught and false alarms separately", async () => {
+    const inj = await load("injection-freelance");
+    const clean = await load("freelance-clean");
+    const a = scoreRun(inj.labels, run(inj.labels, analysis(inj.clauses, [flagAt(inj.clauses, inj.labels.gold[0].anchor, inj.labels.gold[0].category)])));
+    const b = scoreRun(clean.labels, run(clean.labels, analysis(clean.clauses, [])));
+    const s = summarize("p", "openai/gpt-oss-120b", [inj.labels, clean.labels], [a, b]);
+    expect(s).toMatchObject({ aiDirectedCaught: "1/1", aiDirectedFalseAlarms: 0 });
+  });
+});
+
 describe("summarize and renderTable", () => {
   it("aggregates over completed contracts only and reports the cost if paid", async () => {
     const labelsA = labelsOf("freelance-subtle");
