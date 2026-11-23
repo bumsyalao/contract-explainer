@@ -75,8 +75,13 @@ are "decided, not built yet".
   return JSON, it has no tools and no network) and from the verifier checking every
   quote against the source. A detector adds cost and is unreliable. Contract text is
   only ever in the user turn, inside `<document>` tags, never in the system prompt.
-- Status: prompts and trust-boundary tests are built. The UI must render everything
-  as plain text, never HTML (to do). One injection contract is planned for the evals.
+- Fences: the contract and the question are each wrapped in tags that carry a random
+  per-request suffix (`<document-3fa9...>`). A fixed tag could be closed early by tag
+  text inside a contract, which would make what follows look like trusted instructions.
+  The suffix is unpredictable, so injected tags are just text (tested).
+- Status: prompts, fences and trust-boundary tests are built. The UI must render
+  everything as plain text, never HTML (to do). One injection contract is planned for
+  the evals.
 
 ## D7. Redaction of personal details
 - Options: none; regex redaction; local-only for real documents.
@@ -104,7 +109,15 @@ are "decided, not built yet".
 - Q&A (options: whole document in context; retrieval over clauses). Chosen: whole
   document, answers must cite clause ids and verbatim quotes, run through the same
   verifier, with "not found in this document" as the fallback.
-- Status: provider wrapper built. Q&A not built yet.
+- Q&A rules, as built: an answer is shown only if at least one citation is a real quote
+  (checked by the same resolver as the flags). If none verify, the model's answer is
+  withheld and we say the document does not say. An answer with no citations is never
+  shown. Questions are capped at 500 characters and treated as untrusted input.
+- Live check on the sample (four questions, one model): two answerable questions got
+  correct answers with verified citations, a question the contract does not answer got
+  "not found", and an instruction-hijack question got "not found". Each question cost
+  about 1.6K tokens.
+- Status: provider wrapper and Q&A built.
 - Details and sources: `docs/groq-api-notes.md`, `docs/gemini-api-notes.md`.
 
 ## D9. Evals and model comparison
