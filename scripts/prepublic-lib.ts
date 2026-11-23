@@ -46,7 +46,9 @@ export function findPersonalData(text: string): Finding[] {
       const digits = m[0].replace(/\D/g, "");
       // Skip things that are clearly not phone numbers: dates, long ids, package versions.
       const ssnShaped = /^\d{3}-\d{2}-\d{4}$/.test(m[0].trim());
-      if (!ssnShaped && digits.length >= 9 && digits.length <= 15 && /[\s().+-]/.test(m[0]) && !/^\d{4}-\d{2}-\d{2}/.test(m[0])) {
+      // A plain decimal (a price, a ratio) is not a phone number.
+      const decimal = /^\d+\.\d+$/.test(m[0].trim());
+      if (!ssnShaped && !decimal && digits.length >= 9 && digits.length <= 15 && /[\s().+-]/.test(m[0]) && !/^\d{4}-\d{2}-\d{2}/.test(m[0])) {
         out.push({ kind: "phone-like number", line: i + 1, text: m[0].trim() });
       }
     }

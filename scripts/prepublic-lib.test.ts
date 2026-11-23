@@ -38,6 +38,7 @@ describe("findPersonalData", () => {
   it("flags phone-like numbers but not dates or versions", () => {
     expect(findPersonalData("call +44 20 7946 0958 now").map((x) => x.kind)).toEqual(["phone-like number"]);
     expect(findPersonalData("made on 2026-04-02 with version 1.2.3.4567")).toEqual([]);
+    expect(findPersonalData('"paidCost": 0.000733065, "other": 0.00918368')).toEqual([]);
   });
   it("flags SSN-like and IBAN-like numbers without printing them", () => {
     const f = findPersonalData("123-45-6789 and GB82WEST12345698765432");
