@@ -1,13 +1,11 @@
-import type { z } from "zod";
-import { withRetry } from "@/lib/llm/retry";
 import type { LlmProvider } from "@/lib/llm/types";
 import type { Clause } from "@/lib/segment/segment";
+import { callAndParse, type CallStats } from "./call";
 import { normalizeClauseId } from "./clause-id";
 import { estimateTokens, KEY_TERMS_SYSTEM, renderDocument, RISK_FLAGS_SYSTEM } from "./prompts";
 import {
   KeyTermsSchema,
   RiskFlagsSchema,
-  toProviderSchema,
   type KeyTerms,
   type RiskFlags,
 } from "./schemas";
@@ -29,17 +27,8 @@ export class DocumentTooLongError extends Error {
   }
 }
 
-export class InvalidModelOutputError extends Error {
-  constructor(
-    message: string,
-    public issues: string[],
-  ) {
-    super(message);
-    this.name = "InvalidModelOutputError";
-  }
-}
-
-export type CallStats = { inputTokens: number; outputTokens: number; latencyMs: number };
+export type { CallStats };
+export { InvalidModelOutputError } from "./call";
 
 export type RawAnalysis = {
   keyTerms: KeyTerms;
@@ -47,29 +36,6 @@ export type RawAnalysis = {
   model: string;
   stats: { keyTerms: CallStats; flags: CallStats };
 };
-
-async function callAndParse<T>(
-  provider: LlmProvider,
-  system: string,
-  prompt: string,
-  schema: z.ZodType<T>,
-): Promise<{ data: T; stats: CallStats }> {
-  const result = await withRetry(() =>
-    provider.generate({ system, prompt, schema: toProviderSchema(schema), temperature: 0 }),
-  );
-  // Even with strict decoding, validate. Other providers are only best effort.
-  const parsed = schema.safeParse(result.json);
-  if (!parsed.success) {
-    throw new InvalidModelOutputError(
-      "The model answer did not match the expected format.",
-      parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
-    );
-  }
-  return {
-    data: parsed.data,
-    stats: { ...result.usage, latencyMs: result.latencyMs },
-  };
-}
 
 /**
  * Two sequential calls: key terms, then risk flags. Sequential on purpose, so
