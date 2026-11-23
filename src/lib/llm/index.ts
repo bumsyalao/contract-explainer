@@ -1,5 +1,5 @@
 import { GeminiProvider } from "./gemini";
-import { GroqProvider } from "./groq";
+import { GroqProvider, type GroqOptions } from "./groq";
 import type { LlmProvider } from "./types";
 
 export * from "./types";
@@ -28,7 +28,17 @@ export function createProvider(id: ProviderId, env: NodeJS.ProcessEnv = process.
   const model = env[MODEL_ENV[id]] ?? "";
   if (id.startsWith("groq")) {
     // All three configured Groq models support strict constrained decoding.
-    return new GroqProvider({ name: id, model, apiKey: env.GROQ_API_KEY ?? "", strict: true });
+    // gpt-oss models spend many hidden reasoning tokens by default, which eat the
+    // free-tier token budget, so we default them to low effort.
+    const isGptOss = model.startsWith("openai/gpt-oss");
+    const effort = (env.GROQ_REASONING_EFFORT || (isGptOss ? "low" : "")) as GroqOptions["reasoningEffort"] | "";
+    return new GroqProvider({
+      name: id,
+      model,
+      apiKey: env.GROQ_API_KEY ?? "",
+      strict: true,
+      ...(effort ? { reasoningEffort: effort } : {}),
+    });
   }
   return new GeminiProvider({ name: id, model, apiKey: env.GOOGLE_API_KEY ?? "" });
 }

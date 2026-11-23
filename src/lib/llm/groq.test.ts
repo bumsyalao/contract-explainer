@@ -52,6 +52,19 @@ describe("GroqProvider", () => {
     expect(JSON.parse(calls[0].init.body as string).response_format.json_schema.strict).toBe(false);
   });
 
+  it("sends reasoning_effort only when configured", async () => {
+    const fetchImpl = (async (_u: string, init: RequestInit) => {
+      bodies.push(JSON.parse(init.body as string));
+      return json(okBody('{"ok":true}'));
+    }) as unknown as typeof fetch;
+    const bodies: Record<string, unknown>[] = [];
+    const base = { name: "t", model: "m", apiKey: "k", fetchImpl };
+    await new GroqProvider({ ...base, reasoningEffort: "low" }).generate(req);
+    await new GroqProvider(base).generate(req);
+    expect(bodies[0].reasoning_effort).toBe("low");
+    expect("reasoning_effort" in bodies[1]).toBe(false);
+  });
+
   it("sends the key only in the Authorization header", async () => {
     const { p, calls } = makeProvider(() => json(okBody('{"ok":true}')));
     await p.generate(req);
@@ -87,6 +100,31 @@ describe("GroqProvider", () => {
     expect(err).toBeInstanceOf(ProviderError);
     expect(err.message).not.toContain("CONTRACT TEXT");
     expect(err.message).not.toContain("SECRET-KEY");
+  });
+
+  it("includes only Groq's short error code and type, never the message or failed generation", async () => {
+    const { p } = makeProvider(() =>
+      json(
+        {
+          error: {
+            message: "echo CONTRACT TEXT",
+            type: "invalid_request_error",
+            code: "json_validate_failed",
+            failed_generation: "CONTRACT TEXT SECRET-KEY",
+          },
+        },
+        400,
+      ),
+    );
+    const err = await p.generate(req).catch((e) => e);
+    expect(err.message).toBe("Model API error 400 (invalid_request_error/json_validate_failed).");
+    expect(err.message).not.toContain("CONTRACT TEXT");
+  });
+
+  it("drops error labels that contain unexpected characters", async () => {
+    const { p } = makeProvider(() => json({ error: { code: "has spaces and CONTRACT TEXT" } }, 400));
+    const err = await p.generate(req).catch((e) => e);
+    expect(err.message).toBe("Model API error 400.");
   });
 
   it("flags truncated output (finish_reason length) as InvalidJsonError", async () => {

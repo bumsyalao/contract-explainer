@@ -17,6 +17,12 @@ export type GroqOptions = {
   apiKey: string;
   /** strict:true uses constrained decoding. Only some models support it. Default true. */
   strict?: boolean;
+  /**
+   * Sent as reasoning_effort when set. gpt-oss models accept low, medium, high.
+   * Qwen 3.8 accepts none, default, low, medium, high. Lower effort means fewer
+   * hidden reasoning tokens, which count against the free-tier token limits.
+   */
+  reasoningEffort?: "none" | "default" | "low" | "medium" | "high";
   baseUrl?: string;
   /** Injectable for tests. */
   fetchImpl?: typeof fetch;
@@ -47,6 +53,7 @@ export class GroqProvider implements LlmProvider {
   readonly model: string;
   private apiKey: string;
   private strict: boolean;
+  private reasoningEffort?: GroqOptions["reasoningEffort"];
   private baseUrl: string;
   private fetchImpl: typeof fetch;
   private timeoutMs: number;
@@ -58,6 +65,7 @@ export class GroqProvider implements LlmProvider {
     this.model = opts.model;
     this.apiKey = opts.apiKey;
     this.strict = opts.strict ?? true;
+    this.reasoningEffort = opts.reasoningEffort;
     this.baseUrl = opts.baseUrl ?? DEFAULT_BASE_URL;
     this.fetchImpl = opts.fetchImpl ?? fetch;
     this.timeoutMs = opts.timeoutMs ?? 60_000;
@@ -75,6 +83,7 @@ export class GroqProvider implements LlmProvider {
         json_schema: { name: "result", strict: this.strict, schema: req.schema },
       },
       temperature: req.temperature ?? 0,
+      ...(this.reasoningEffort ? { reasoning_effort: this.reasoningEffort } : {}),
     };
 
     const timeout = AbortSignal.timeout(this.timeoutMs);
@@ -105,8 +114,17 @@ export class GroqProvider implements LlmProvider {
       throw new ProviderError("This document is too long for the free model limits. Try a shorter one.", 413);
     }
     if (!res.ok) {
-      // Never echo our request (it holds the contract) or the key.
-      throw new ProviderError(`Model API error ${res.status}.`, res.status);
+      // Report only Groq's short error code/type. The message and failed_generation
+      // fields can echo the contract, and our request holds it, so never include them.
+      let label = "";
+      try {
+        const errBody = (await res.json()) as { error?: { code?: unknown; type?: unknown } };
+        const safe = (v: unknown) => (typeof v === "string" && /^[a-z0-9_.-]{1,60}$/i.test(v) ? v : "");
+        label = [safe(errBody.error?.type), safe(errBody.error?.code)].filter(Boolean).join("/");
+      } catch {
+        /* body was not JSON */
+      }
+      throw new ProviderError(`Model API error ${res.status}${label ? ` (${label})` : ""}.`, res.status);
     }
 
     const data = (await res.json()) as ChatResponse;
