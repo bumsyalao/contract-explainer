@@ -110,6 +110,7 @@
       }
     ],
     "structured": true,
+    "aiDirectedText": [],
     "keyTerms": {
       "document_type": "freelance_agreement",
       "summary": "This freelance services agreement sets out that Northwind Digital Ltd hires Jordan Example to provide brand and website design work starting on 1 March 2026 for an initial 12‑month term, with automatic yearly renewals unless 90‑day notice is given. The contractor is paid a fixed USD 24,000 in monthly installments, with payment terms, penalties, confidentiality, non‑compete, termination rights and governing law in the fictional Republic of Examplia.",

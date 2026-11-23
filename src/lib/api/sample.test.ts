@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { extractPages } from "@/lib/pdf/extract";
+import { guardClauses } from "@/lib/safety/ai-directed";
 import { segment } from "@/lib/segment/segment";
 import { normalizeQuote } from "@/lib/verify/normalize";
 import { handleSample, SAMPLE_CACHE } from "./sample";
@@ -16,6 +17,12 @@ describe("cached sample", () => {
     const pages = await samplePages();
     expect(SAMPLE_CACHE.analysis.pages).toEqual(pages);
     expect(SAMPLE_CACHE.analysis.clauses).toEqual(segment(pages).clauses);
+  });
+
+  it("reports the same AI-directed text the detector finds now (none, for the sample)", async () => {
+    const pages = await samplePages();
+    expect(SAMPLE_CACHE.analysis.aiDirectedText).toEqual(guardClauses(segment(pages).clauses).findings);
+    expect(SAMPLE_CACHE.analysis.aiDirectedText).toEqual([]);
   });
 
   it("has flags and key terms whose offsets point at their quotes on the right page", async () => {

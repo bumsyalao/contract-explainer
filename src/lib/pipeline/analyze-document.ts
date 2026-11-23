@@ -1,5 +1,6 @@
 import { analyze } from "@/lib/analysis/analyze";
 import type { LlmProvider } from "@/lib/llm/types";
+import { guardClauses, type AiDirectedFinding } from "@/lib/safety/ai-directed";
 import { extractPages, type Page } from "@/lib/pdf/extract";
 import { segment, type Clause } from "@/lib/segment/segment";
 import { verifyAnalysis, type DropReason, type VerifiedAnalysis } from "@/lib/verify/verify";
@@ -12,6 +13,11 @@ export type AnalyzeResponse = {
   clauses: Clause[];
   /** false when no numbered headings were found and we fell back to size chunks. */
   structured: boolean;
+  /**
+   * Text in the contract that is aimed at AI readers. It was hidden from the model, and the
+   * user is warned about it. Found by fixed patterns, so a reworded plant could slip past.
+   */
+  aiDirectedText: AiDirectedFinding[];
   keyTerms: VerifiedAnalysis["keyTerms"];
   flags: VerifiedAnalysis["flags"];
   /** Counts only. The dropped quotes themselves stay on the server and are not returned. */
@@ -24,6 +30,7 @@ export type AnalyzeResponse = {
 export async function analyzeDocument(provider: LlmProvider, pdf: Uint8Array): Promise<AnalyzeResponse> {
   const { pages } = await extractPages(pdf);
   const { clauses, structured } = segment(pages);
+  const { findings: aiDirectedText } = guardClauses(clauses);
   const raw = await analyze(provider, clauses);
   const verified = verifyAnalysis(raw, clauses);
 
@@ -37,6 +44,7 @@ export async function analyzeDocument(provider: LlmProvider, pdf: Uint8Array): P
     pages,
     clauses,
     structured,
+    aiDirectedText,
     keyTerms: verified.keyTerms,
     flags: verified.flags,
     droppedByReason,

@@ -3,6 +3,7 @@ import { normalizeClauseId } from "@/lib/analysis/clause-id";
 import { DocumentTooLongError, MAX_DOCUMENT_TOKENS } from "@/lib/analysis/analyze";
 import { estimateTokens, renderDocument } from "@/lib/analysis/prompts";
 import type { LlmProvider } from "@/lib/llm/types";
+import { guardClauses } from "@/lib/safety/ai-directed";
 import type { Clause } from "@/lib/segment/segment";
 import { normalizeQuote } from "@/lib/verify/normalize";
 import { ClauseIndex } from "@/lib/verify/clause-index";
@@ -56,14 +57,18 @@ export async function answerQuestion(
 ): Promise<QaResult> {
   const question = validateQuestion(rawQuestion);
 
+  // The clauses may come from the browser, so we never trust them: the model only sees a
+  // copy with AI-directed text replaced by a placeholder.
+  const { masked } = guardClauses(clauses);
+
   // The document is the big part of the prompt, so budget on it alone.
-  const estimated = estimateTokens(renderDocument(clauses, "x"));
+  const estimated = estimateTokens(renderDocument(masked, "x"));
   if (estimated > MAX_DOCUMENT_TOKENS) throw new DocumentTooLongError(estimated);
 
   const { data, stats } = await callAndParse(
     provider,
     QA_SYSTEM,
-    renderQaPrompt(clauses, question),
+    renderQaPrompt(masked, question),
     AnswerSchema,
   );
 

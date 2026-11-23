@@ -1,4 +1,5 @@
 import type { LlmProvider } from "@/lib/llm/types";
+import { guardClauses } from "@/lib/safety/ai-directed";
 import type { Clause } from "@/lib/segment/segment";
 import { callAndParse, type CallStats } from "./call";
 import { normalizeClauseId } from "./clause-id";
@@ -43,7 +44,9 @@ export type RawAnalysis = {
  * verified: run the verifier before showing anything to a user.
  */
 export async function analyze(provider: LlmProvider, clauses: Clause[]): Promise<RawAnalysis> {
-  const prompt = renderDocument(clauses);
+  // The model reads a copy with AI-directed text replaced by a placeholder. Callers keep
+  // verifying against the original clauses, so nothing planted can be cited.
+  const prompt = renderDocument(guardClauses(clauses).masked);
   const estimated = estimateTokens(prompt);
   if (estimated > MAX_DOCUMENT_TOKENS) throw new DocumentTooLongError(estimated);
 

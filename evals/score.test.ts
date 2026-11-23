@@ -41,7 +41,7 @@ function flagAt(clauses: Clause[], anchor: string, category: Flag["category"] = 
 
 function analysis(clauses: Clause[], flags: Flag[], overrides: Partial<AnalyzeResponse> = {}, terms: AnalyzeResponse["keyTerms"]["key_terms"] = []): AnalyzeResponse {
   return {
-    model: "m", pages: [{ page: 1, text: "" }], clauses, structured: true,
+    model: "m", pages: [{ page: 1, text: "" }], clauses, structured: true, aiDirectedText: [],
     keyTerms: { document_type: "other", summary: "s", parties: [], key_terms: terms },
     flags, droppedByReason: {},
     stats: { keyTermsTotal: terms.length, keyTermsKept: terms.length, flagsTotal: flags.length, flagsKept: flags.length, relocated: 0, quotePassRate: 1 },
