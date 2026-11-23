@@ -37,7 +37,7 @@ export const KeyTermsSchema = z.object({
       category: z.enum(KEY_TERM_CATEGORIES),
       label: z.string().describe("Short name, for example Monthly fee or Notice to end."),
       value: z.string().describe("The term in plain language, for example 75 days after receipt."),
-      clause_id: z.string().describe("The id of the clause the term comes from, exactly as shown in brackets."),
+      clause_id: z.string().describe("Only the clause id, for example 7 or 3.2. No brackets, no word clause, no page."),
       quote: z.string().describe("Exact words copied from that clause that support the term."),
     }),
   ),
@@ -61,7 +61,7 @@ export const FLAG_CATEGORIES = [
 export const RiskFlagsSchema = z.object({
   flags: z.array(
     z.object({
-      clause_id: z.string().describe("The id of the clause, exactly as shown in brackets."),
+      clause_id: z.string().describe("Only the clause id, for example 7 or 3.2. No brackets, no word clause, no page."),
       quote: z.string().describe("Exact words copied from that clause. No paraphrasing, no ellipses."),
       category: z.enum(FLAG_CATEGORIES),
       severity: z.enum(["low", "medium", "high"]),

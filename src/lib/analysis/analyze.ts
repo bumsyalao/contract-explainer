@@ -2,6 +2,7 @@ import type { z } from "zod";
 import { withRetry } from "@/lib/llm/retry";
 import type { LlmProvider } from "@/lib/llm/types";
 import type { Clause } from "@/lib/segment/segment";
+import { normalizeClauseId } from "./clause-id";
 import { estimateTokens, KEY_TERMS_SYSTEM, renderDocument, RISK_FLAGS_SYSTEM } from "./prompts";
 import {
   KeyTermsSchema,
@@ -13,10 +14,13 @@ import {
 
 /**
  * Free-tier budget guard. Groq's free models allow about 8K tokens per minute
- * and we make two calls, each carrying the whole document. This is a starting
- * guess to tune after live runs, not a documented limit.
+ * and we make two calls, each carrying the whole document. Measured on the
+ * 3-page sample (estimate 916 tokens): about 5K tokens per run, of which roughly
+ * 2.4K is output and 0.5K per call is prompt overhead. Output grows with the
+ * number of flags, so we keep headroom: 2000 estimated document tokens is
+ * about 7 pages of plain text. Tune after more live runs.
  */
-export const MAX_DOCUMENT_TOKENS = 3000;
+export const MAX_DOCUMENT_TOKENS = 2000;
 
 export class DocumentTooLongError extends Error {
   constructor(public estimatedTokens: number) {
@@ -80,9 +84,18 @@ export async function analyze(provider: LlmProvider, clauses: Clause[]): Promise
   const keyTerms = await callAndParse(provider, KEY_TERMS_SYSTEM, prompt, KeyTermsSchema);
   const flags = await callAndParse(provider, RISK_FLAGS_SYSTEM, prompt, RiskFlagsSchema);
 
+  // Models sometimes return the whole "[clause 2 | page 1]" label. Keep just the id.
+  const cleanKeyTerms: KeyTerms = {
+    ...keyTerms.data,
+    key_terms: keyTerms.data.key_terms.map((t) => ({ ...t, clause_id: normalizeClauseId(t.clause_id) })),
+  };
+  const cleanFlags: RiskFlags = {
+    flags: flags.data.flags.map((f) => ({ ...f, clause_id: normalizeClauseId(f.clause_id) })),
+  };
+
   return {
-    keyTerms: keyTerms.data,
-    flags: flags.data,
+    keyTerms: cleanKeyTerms,
+    flags: cleanFlags,
     model: provider.model,
     stats: { keyTerms: keyTerms.stats, flags: flags.stats },
   };

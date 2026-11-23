@@ -67,6 +67,26 @@ describe("analyze", () => {
     expect(r.model).toBe("mock-model");
   });
 
+  it("reduces label-style clause ids to the bare id", async () => {
+    const mock = new MockProvider((req) =>
+      req.system === KEY_TERMS_SYSTEM
+        ? {
+            ...goodKeyTerms,
+            key_terms: [
+              { category: "renewal", label: "L", value: "v", clause_id: "[clause 2 | page 1]", quote: "q" },
+            ],
+          }
+        : {
+            flags: [
+              { clause_id: "clause 7", quote: "q", category: "non_compete", severity: "high", title: "t", explanation: "e" },
+            ],
+          },
+    );
+    const r = await analyze(mock, await sampleClauses());
+    expect(r.keyTerms.key_terms[0].clause_id).toBe("2");
+    expect(r.flags.flags[0].clause_id).toBe("7");
+  });
+
   it("rejects model output that does not match the schema", async () => {
     const mock = new MockProvider(() => ({ nope: true }));
     await expect(analyze(mock, await sampleClauses())).rejects.toBeInstanceOf(InvalidModelOutputError);
