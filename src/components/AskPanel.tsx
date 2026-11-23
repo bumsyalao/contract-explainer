@@ -3,7 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import type { AnalyzeResponse, AskResponse, SampleResponse } from "@/lib/api/types";
 import { MAX_QUESTION_CHARS } from "@/lib/qa/limits";
-import { VERDICT_DECLINE_MESSAGE } from "@/lib/qa/verdict";
+import { isVerdictQuestion, VERDICT_DECLINE_MESSAGE } from "@/lib/qa/verdict";
 import { askQuestion, ApiClientError } from "@/lib/ui/client";
 import type { Selection } from "@/lib/ui/highlight";
 import { JumpLink } from "./JumpLink";
@@ -48,6 +48,16 @@ export function AskPanel({ data, saved, liveEnabled, activeKey, onShow, onGoToRi
     if (!question || busy) return;
     const id = nextId.current++;
     setText("");
+
+    // A request for a verdict on the whole contract is declined here at once, with no request.
+    // The server declines it too, since it never trusts the browser.
+    if (isVerdictQuestion(question)) {
+      setItems((prev) => [
+        { id, question, state: { kind: "done", result: { status: "declined", reason: "overall_verdict" }, saved: false } },
+        ...prev,
+      ]);
+      return;
+    }
 
     // The sample's suggested questions have saved answers, so they need no live call.
     const hit = saved?.find((s) => s.question === question);

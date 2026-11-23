@@ -116,21 +116,17 @@ export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props)
         ))}
       </div>
 
-      {tab === "risks" && (
-        <div role="tabpanel" id={`${base}-panel-risks`} aria-labelledby={`${base}-tab-risks`} className="tabpanel">
-          <RiskList flags={flags} activeKey={activeKey} onShow={onShow} />
-        </div>
-      )}
-      {tab === "terms" && (
-        <div role="tabpanel" id={`${base}-panel-terms`} aria-labelledby={`${base}-tab-terms`} className="tabpanel">
-          <KeyTerms terms={keyTerms.key_terms} activeKey={activeKey} onShow={onShow} />
-        </div>
-      )}
-      {tab === "ask" && (
-        <div role="tabpanel" id={`${base}-panel-ask`} aria-labelledby={`${base}-tab-ask`} className="tabpanel">
-          <AskPanel data={data} saved={saved} liveEnabled={liveEnabled} activeKey={activeKey} onShow={onShow} onGoToRisks={() => setTab("risks")} />
-        </div>
-      )}
+      {/* All three panels stay mounted and the inactive ones are hidden, so the question history
+          and any half-typed question survive a trip to another tab. */}
+      <div role="tabpanel" id={`${base}-panel-risks`} aria-labelledby={`${base}-tab-risks`} className="tabpanel" hidden={tab !== "risks"}>
+        <RiskList flags={flags} activeKey={activeKey} onShow={onShow} />
+      </div>
+      <div role="tabpanel" id={`${base}-panel-terms`} aria-labelledby={`${base}-tab-terms`} className="tabpanel" hidden={tab !== "terms"}>
+        <KeyTerms terms={keyTerms.key_terms} activeKey={activeKey} onShow={onShow} />
+      </div>
+      <div role="tabpanel" id={`${base}-panel-ask`} aria-labelledby={`${base}-tab-ask`} className="tabpanel" hidden={tab !== "ask"}>
+        <AskPanel data={data} saved={saved} liveEnabled={liveEnabled} activeKey={activeKey} onShow={onShow} onGoToRisks={() => setTab("risks")} />
+      </div>
 
       <p className="findings__foot">
         This tool explains and flags. It is not legal advice. For anything important, check the contract with a
