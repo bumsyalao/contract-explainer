@@ -158,6 +158,22 @@ are "decided, not built yet".
   Vercel's firewall rate limiting, or keeping live analysis behind a visible warning.
 - Status: built.
 
+## D12. Protecting the free quota, and one targeted retry
+- Problem: the demo runs on a free key shared by every visitor, so anyone can use it up.
+- Options: do nothing and accept "busy" messages; add a per-visitor limit; add a switch
+  that turns live analysis off. A per-visitor limit needs a shared store, and the brief
+  says no database. Vercel's firewall rate limiting can do it at the platform level.
+- Chosen: a kill switch (`LIVE_ANALYSIS=off`). The demo then serves only the saved sample.
+  Uploads and live questions return a friendly 503 before any model call, and the
+  interface explains it (no upload box, saved questions only). Tested in the handlers and
+  in a real browser. Platform rate limiting is a good extra once deployed.
+- Retries: a 429 is retried with backoff, but a long wait (a daily quota) is not, because
+  retrying inside a web request would waste the attempt. Groq also sometimes returns an
+  intermittent `400 json_validate_failed` (seen on the first pipeline run and again on
+  `qwen3.8-27b` in the evals). That one code, and only that one, is retried twice straight
+  away. Other 400s are not.
+- Status: built.
+
 ## D11. The interface
 - Layout (options: two panes with findings left and the document right; a single
   column with expandable sources; the document first with margin notes). Chosen: two
