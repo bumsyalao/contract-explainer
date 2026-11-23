@@ -158,6 +158,35 @@ are "decided, not built yet".
   Vercel's firewall rate limiting, or keeping live analysis behind a visible warning.
 - Status: built.
 
+## D11. The interface
+- Layout (options: two panes with findings left and the document right; a single
+  column with expandable sources; the document first with margin notes). Chosen: two
+  panes. Evidence and claim sit side by side, which is the core of the product. On
+  phones the panes stack, and a floating "Back to findings" button appears once you
+  have jumped to a quote.
+- Interaction: every "show me where" link (risks, key terms, answer citations) uses
+  one code path. It sets the highlight, scrolls the exact quoted words to the centre
+  of the contract and marks the clause label. The link text is "Clause 7, page 2".
+  Offsets come from the verifier, so the highlight is exactly the verified quote
+  (checked in a browser test against the quote text).
+- Look: one deliberate choice. The only warm colour is the marker yellow, so the quoted
+  words are the first thing your eye finds. The rest is a cool desk, white sheets and
+  navy ink. Findings are ruled rows with a severity edge, not cards. Severity is
+  written in words ("High risk"), never colour alone. Type is a printed-contract serif
+  for the contract and headings, and the system sans for controls. System font stacks
+  keep the build free of font downloads. Dark mode and reduced motion are supported.
+- Trust copy shown in the interface: "Explains and flags. Not legal advice." in the top
+  bar and again under the findings, "Use made-up or sample contracts only" on the
+  landing screen, and a line saying every highlighted quote was found in the document
+  (with a count of anything removed).
+- Rendering rule from D6: all contract text, quotes and answers are rendered as React
+  text, never as HTML.
+- Checked with a real browser at desktop and phone width (Playwright): 20 checks on the
+  sample flow, including that highlighted words equal the quote, no horizontal
+  scrolling, keyboard tab navigation, and no console errors. Not yet checked with a
+  screen reader.
+- Status: built.
+
 ## Future enhancements
 - Scanned PDFs through OCR.
 - A labelled local mode (for example Ollama) for real documents, and better redaction.
