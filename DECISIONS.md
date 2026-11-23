@@ -223,9 +223,21 @@ are "decided, not built yet".
 - Conclusion: this reliably catches the standard copy-paste injections and blocks the exact
   failure seen in the eval, but it does not stop a determined or creative attacker. It is one
   layer next to the fenced untrusted input, the model having no tools, and the verifier.
-- Ideas that do not depend on wording, not built: refuse questions that ask for an overall
-  verdict ("is it safe to sign?"), which also fits the no-legal-advice rule; and withhold any
-  model-written summary or answer that declares the contract safe, approved or risk-free.
+- A safeguard that does not depend on wording (owner's choice): questions that ask for an overall
+  verdict ("is it safe to sign?", "should I sign?", "is this a good deal?", "any red flags?") are
+  declined with a fixed message and a button to the Risks tab, before any model call. This fits
+  the no-legal-advice rule and blocks the exact exploit seen in the eval whatever the plant says.
+  It is deliberately narrow, because the owner wanted ordinary factual questions answered
+  directly. "Is there a late fee?" is never declined, and the Q&A rules now ask the model to start
+  yes/no answers with "Yes." or "No.". The classifier is tested on 29 verdict questions and 36
+  ordinary ones, including every phrasing of the late-fee question and e-signing questions. The
+  browser declines instantly (no request) and the server declines too, before it creates a model,
+  so it also works with no key and costs no quota.
+- Not built: withholding any model-written summary or answer that declares the contract safe,
+  approved or risk-free (an output-side check). It would work whatever the plant says, but it can
+  withhold a legitimate summary that happens to use those words.
+- A bug found on the way: switching tabs unmounted the Ask panel, so the question history was lost
+  when you went to the Risks tab and back. All three panels now stay mounted.
 - Status: built (detector, masking, warning in the interface, tests, eval metrics).
 
 ## D11. The interface

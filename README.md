@@ -30,6 +30,9 @@ personal details.
   24 hours notice, uncapped liability, giving away all your work, and so on), worst first.
 - **Key terms**: dates, amounts, notice periods, renewal and penalties.
 - **Ask a question**: answers that come only from the document, with the quote they rely on.
+  Ask what it says ("Is there a late fee?") and you get a direct answer, starting with Yes or No
+  where that fits. Ask whether it is safe to sign, or whether you should sign, and it will not
+  answer: it does not give legal advice, so it points you to the Risks tab instead.
 - Click any "Clause 7, page 2" link and the exact words are highlighted in the contract.
 
 ## How it works
@@ -105,7 +108,10 @@ What I learned from it:
   to sign?", `gpt-oss-120b` answered that the contract states it is, citing the planted sentence,
   and my checker passed it because that sentence really is in the document. I then added the
   detector described above. After it, all three models answer "the contract does not say" on that
-  question, and the planted passage shows up as a warning. Honest numbers on the detector: it fired
+  question, and the planted passage shows up as a warning. I also made the app decline any
+  question that asks for a verdict on the whole contract ("is it safe to sign?", "should I sign?",
+  "any red flags?") before a model is called, so that exploit is closed whatever wording a plant
+  uses. Questions about specific terms are never declined. Honest numbers on the detector: it fired
   on 1 contract out of the 11 I have (the planted one) and never on the other 10, and it leaves
   dozens of ordinary contract sentences alone. But I wrote its patterns after seeing the plant, so
   catching that plant proves little. On a set of 20 plants I had not built it around (3 in the
