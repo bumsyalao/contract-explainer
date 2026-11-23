@@ -13,7 +13,8 @@ const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
  * Retry only on rate limits (HTTP 429), with exponential backoff and jitter.
- * If the provider says how long to wait, we honour that (within maxWaitMs).
+ * If the provider says how long to wait, we honour that, unless it is longer
+ * than maxWaitMs (a daily quota), in which case we give up immediately.
  * After the last retry the RateLimitError is rethrown so the UI can show a
  * friendly "busy, try again" message instead of a crash.
  */
@@ -34,9 +35,11 @@ export async function withRetry<T>(
       return await fn();
     } catch (err) {
       if (!(err instanceof RateLimitError) || attempt >= maxRetries) throw err;
+      // A long wait means a daily quota, not a short burst. Retrying inside a
+      // web request would just waste attempts, so surface it straight away.
+      if (err.retryAfterMs !== undefined && err.retryAfterMs > maxWaitMs) throw err;
       const backoff = baseMs * 2 ** attempt * (0.75 + random() * 0.5);
-      const wait = Math.min(err.retryAfterMs ?? backoff, maxWaitMs);
-      await sleep(wait);
+      await sleep(err.retryAfterMs ?? backoff);
     }
   }
 }

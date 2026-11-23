@@ -23,19 +23,33 @@ describe("withRetry", () => {
     expect(waits).toEqual([100, 200]);
   });
 
-  it("honours retryAfterMs but caps it at maxWaitMs", async () => {
+  it("honours a short retryAfterMs", async () => {
     const waits: number[] = [];
     let n = 0;
     await withRetry(
       async () => {
-        n++;
-        if (n === 1) throw new RateLimitError("429", 5000);
-        if (n === 2) throw new RateLimitError("429", 999_999);
+        if (++n === 1) throw new RateLimitError("429", 5000);
         return "ok";
       },
       { ...noJitter, maxWaitMs: 8000, sleep: async (ms) => void waits.push(ms) },
     );
-    expect(waits).toEqual([5000, 8000]);
+    expect(waits).toEqual([5000]);
+  });
+
+  it("gives up immediately when the wait exceeds maxWaitMs (daily quota)", async () => {
+    let calls = 0;
+    const waits: number[] = [];
+    await expect(
+      withRetry(
+        async () => {
+          calls++;
+          throw new RateLimitError("daily limit", 3 * 60 * 60 * 1000);
+        },
+        { maxWaitMs: 20_000, sleep: async (ms) => void waits.push(ms) },
+      ),
+    ).rejects.toMatchObject({ retryAfterMs: 10_800_000 });
+    expect(calls).toBe(1);
+    expect(waits).toEqual([]);
   });
 
   it("rethrows the RateLimitError after maxRetries", async () => {
