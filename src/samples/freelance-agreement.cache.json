@@ -1,0 +1,423 @@
+{
+  "generatedWith": "openai/gpt-oss-120b",
+  "analysis": {
+    "model": "openai/gpt-oss-120b",
+    "pages": [
+      {
+        "page": 1,
+        "text": "FREELANCE SERVICES AGREEMENT\nSYNTHETIC SAMPLE DOCUMENT. Fictional parties. Not a real contract.\nThis Agreement is made on 1 March 2026 between Northwind Digital Ltd, a fictional company (the\n\"Client\"), and Jordan Example, a fictional freelance designer (the \"Contractor\").\n1. SERVICES. The Contractor will provide brand design and website design services as described\nin Schedule A (the \"Services\"). The Client may change the scope of the Services at any time by\nemail, and the Contractor must complete the changed scope without additional charge.\n2. TERM. This Agreement starts on 1 March 2026 and continues for an initial term of 12 months.\nAfter the initial term it renews automatically for successive 12 month terms unless either party gives\nwritten notice of non-renewal at least 90 days before the end of the then-current term.\n3. FEES. The Client will pay the Contractor a fixed fee of USD 24,000 for the Services, payable in\ntwelve equal monthly instalments of USD 2,000. The Contractor is responsible for all of their own\ntaxes and expenses."
+      },
+      {
+        "page": 2,
+        "text": "4. PAYMENT TERMS. The Contractor will invoice monthly. The Client will pay each invoice\nwithin 75 days of receipt. If the Contractor delivers any work late, a late fee of 5% of the\nmonthly fee is deducted for each week of delay. The Client may withhold payment of any\ninvoice it disputes in good faith, without limit of time.\n5. INTELLECTUAL PROPERTY. All work product, including any pre-existing materials, tools,\ntemplates and ideas the Contractor uses or mentions in connection with the Services, becomes the\nsole property of the Client on creation. The Contractor assigns all rights worldwide and waives all\nmoral rights. The Contractor may not show the work in a portfolio without written consent.\n6. CONFIDENTIALITY. The Contractor must keep all information about the Client confidential\nduring the term and for 10 years after the Agreement ends.\n7. NON-COMPETE. During the term and for 24 months after it ends, the Contractor will not provide\ndesign services to any business that operates in the same industry as the Client or any of its\naffiliates, anywhere in the world."
+      },
+      {
+        "page": 3,
+        "text": "8. TERMINATION. The Client may terminate this Agreement at any time, for any reason or no\nreason, with 24 hours written notice. The Contractor may terminate only for the Client's\nuncured material breach, with 60 days written notice. On termination by the Client, the Client\nowes fees only for Services accepted before the termination date.\n9. LIABILITY. The Contractor is liable for all losses, damages and costs of any kind arising from the\nServices, with no cap. The Client's total liability to the Contractor will not exceed the fees paid in the\nprevious one month.\n10. INDEMNITY. The Contractor will indemnify the Client against all claims, including claims arising\nfrom the Client's own instructions or negligence.\n11. INDEPENDENT CONTRACTOR. The Contractor is an independent contractor and not an\nemployee. The Contractor must work the hours set by the Client and use equipment specified by\nthe Client.\n12. GOVERNING LAW AND DISPUTES. This Agreement is governed by the laws of the fictional\nRepublic of Examplia. Disputes will be resolved by binding arbitration in Examplia City, with the\nContractor paying all arbitration costs.\nSIGNED: Northwind Digital Ltd (Client) ____________ Jordan Example (Contractor)\n____________"
+      }
+    ],
+    "clauses": [
+      {
+        "id": "preamble",
+        "page": 1,
+        "start": 0,
+        "end": 272,
+        "text": "FREELANCE SERVICES AGREEMENT\nSYNTHETIC SAMPLE DOCUMENT. Fictional parties. Not a real contract.\nThis Agreement is made on 1 March 2026 between Northwind Digital Ltd, a fictional company (the\n\"Client\"), and Jordan Example, a fictional freelance designer (the \"Contractor\")."
+      },
+      {
+        "id": "1",
+        "page": 1,
+        "start": 273,
+        "end": 547,
+        "text": "1. SERVICES. The Contractor will provide brand design and website design services as described\nin Schedule A (the \"Services\"). The Client may change the scope of the Services at any time by\nemail, and the Contractor must complete the changed scope without additional charge."
+      },
+      {
+        "id": "2",
+        "page": 1,
+        "start": 548,
+        "end": 833,
+        "text": "2. TERM. This Agreement starts on 1 March 2026 and continues for an initial term of 12 months.\nAfter the initial term it renews automatically for successive 12 month terms unless either party gives\nwritten notice of non-renewal at least 90 days before the end of the then-current term."
+      },
+      {
+        "id": "3",
+        "page": 1,
+        "start": 834,
+        "end": 1050,
+        "text": "3. FEES. The Client will pay the Contractor a fixed fee of USD 24,000 for the Services, payable in\ntwelve equal monthly instalments of USD 2,000. The Contractor is responsible for all of their own\ntaxes and expenses."
+      },
+      {
+        "id": "4",
+        "page": 2,
+        "start": 0,
+        "end": 325,
+        "text": "4. PAYMENT TERMS. The Contractor will invoice monthly. The Client will pay each invoice\nwithin 75 days of receipt. If the Contractor delivers any work late, a late fee of 5% of the\nmonthly fee is deducted for each week of delay. The Client may withhold payment of any\ninvoice it disputes in good faith, without limit of time."
+      },
+      {
+        "id": "5",
+        "page": 2,
+        "start": 326,
+        "end": 702,
+        "text": "5. INTELLECTUAL PROPERTY. All work product, including any pre-existing materials, tools,\ntemplates and ideas the Contractor uses or mentions in connection with the Services, becomes the\nsole property of the Client on creation. The Contractor assigns all rights worldwide and waives all\nmoral rights. The Contractor may not show the work in a portfolio without written consent."
+      },
+      {
+        "id": "6",
+        "page": 2,
+        "start": 703,
+        "end": 852,
+        "text": "6. CONFIDENTIALITY. The Contractor must keep all information about the Client confidential\nduring the term and for 10 years after the Agreement ends."
+      },
+      {
+        "id": "7",
+        "page": 2,
+        "start": 853,
+        "end": 1079,
+        "text": "7. NON-COMPETE. During the term and for 24 months after it ends, the Contractor will not provide\ndesign services to any business that operates in the same industry as the Client or any of its\naffiliates, anywhere in the world."
+      },
+      {
+        "id": "8",
+        "page": 3,
+        "start": 0,
+        "end": 339,
+        "text": "8. TERMINATION. The Client may terminate this Agreement at any time, for any reason or no\nreason, with 24 hours written notice. The Contractor may terminate only for the Client's\nuncured material breach, with 60 days written notice. On termination by the Client, the Client\nowes fees only for Services accepted before the termination date."
+      },
+      {
+        "id": "9",
+        "page": 3,
+        "start": 340,
+        "end": 568,
+        "text": "9. LIABILITY. The Contractor is liable for all losses, damages and costs of any kind arising from the\nServices, with no cap. The Client's total liability to the Contractor will not exceed the fees paid in the\nprevious one month."
+      },
+      {
+        "id": "10",
+        "page": 3,
+        "start": 569,
+        "end": 719,
+        "text": "10. INDEMNITY. The Contractor will indemnify the Client against all claims, including claims arising\nfrom the Client's own instructions or negligence."
+      },
+      {
+        "id": "11",
+        "page": 3,
+        "start": 720,
+        "end": 908,
+        "text": "11. INDEPENDENT CONTRACTOR. The Contractor is an independent contractor and not an\nemployee. The Contractor must work the hours set by the Client and use equipment specified by\nthe Client."
+      },
+      {
+        "id": "12",
+        "page": 3,
+        "start": 909,
+        "end": 1228,
+        "text": "12. GOVERNING LAW AND DISPUTES. This Agreement is governed by the laws of the fictional\nRepublic of Examplia. Disputes will be resolved by binding arbitration in Examplia City, with the\nContractor paying all arbitration costs.\nSIGNED: Northwind Digital Ltd (Client) ____________ Jordan Example (Contractor)\n____________"
+      }
+    ],
+    "structured": true,
+    "keyTerms": {
+      "document_type": "freelance_agreement",
+      "summary": "This freelance services agreement sets out that Northwind Digital Ltd hires Jordan Example to provide brand and website design work starting on 1 March 2026 for an initial 12‑month term, with automatic yearly renewals unless 90‑day notice is given. The contractor is paid a fixed USD 24,000 in monthly installments, with payment terms, penalties, confidentiality, non‑compete, termination rights and governing law in the fictional Republic of Examplia.",
+      "parties": [
+        {
+          "name": "Northwind Digital Ltd",
+          "role": "Client"
+        },
+        {
+          "name": "Jordan Example",
+          "role": "Contractor"
+        }
+      ],
+      "key_terms": [
+        {
+          "category": "start_date",
+          "label": "Agreement start date",
+          "value": "1 March 2026",
+          "clause_id": "2",
+          "quote": "This Agreement starts on 1 March 2026",
+          "page": 1,
+          "start": 557,
+          "end": 594,
+          "relocated_from": null
+        },
+        {
+          "category": "term_length",
+          "label": "Initial term length",
+          "value": "12 months",
+          "clause_id": "2",
+          "quote": "continues for an initial term of 12 months",
+          "page": 1,
+          "start": 599,
+          "end": 641,
+          "relocated_from": null
+        },
+        {
+          "category": "renewal",
+          "label": "Automatic renewal",
+          "value": "Renews automatically for successive 12‑month terms unless either party gives written notice of non‑renewal at least 90 days before the end of the then‑current term",
+          "clause_id": "2",
+          "quote": "After the initial term it renews automatically for successive 12 month terms unless either party gives written notice of non-renewal at least 90 days before the end of the then-current term.",
+          "page": 1,
+          "start": 643,
+          "end": 833,
+          "relocated_from": null
+        },
+        {
+          "category": "notice_period",
+          "label": "Client termination notice",
+          "value": "24 hours written notice",
+          "clause_id": "8",
+          "quote": "The Client may terminate this Agreement at any time, for any reason or no reason, with 24 hours written notice.",
+          "page": 3,
+          "start": 16,
+          "end": 127,
+          "relocated_from": null
+        },
+        {
+          "category": "notice_period",
+          "label": "Contractor termination notice",
+          "value": "60 days written notice for material breach",
+          "clause_id": "8",
+          "quote": "The Contractor may terminate only for the Client's uncured material breach, with 60 days written notice.",
+          "page": 3,
+          "start": 128,
+          "end": 232,
+          "relocated_from": null
+        },
+        {
+          "category": "notice_period",
+          "label": "Renewal non‑renewal notice",
+          "value": "At least 90 days before the end of the then‑current term",
+          "clause_id": "2",
+          "quote": "unless either party gives written notice of non-renewal at least 90 days before the end of the then-current term.",
+          "page": 1,
+          "start": 720,
+          "end": 833,
+          "relocated_from": null
+        },
+        {
+          "category": "payment_amount",
+          "label": "Total fee",
+          "value": "USD 24,000",
+          "clause_id": "3",
+          "quote": "The Client will pay the Contractor a fixed fee of USD 24,000 for the Services",
+          "page": 1,
+          "start": 843,
+          "end": 920,
+          "relocated_from": null
+        },
+        {
+          "category": "payment_schedule",
+          "label": "Monthly instalments",
+          "value": "USD 2,000 per month for twelve months",
+          "clause_id": "3",
+          "quote": "payable in twelve equal monthly instalments of USD 2,000",
+          "page": 1,
+          "start": 922,
+          "end": 978,
+          "relocated_from": null
+        },
+        {
+          "category": "payment_schedule",
+          "label": "Invoice and payment timing",
+          "value": "Contractor invoices monthly; Client pays each invoice within 75 days of receipt",
+          "clause_id": "4",
+          "quote": "The Contractor will invoice monthly. The Client will pay each invoice within 75 days of receipt.",
+          "page": 2,
+          "start": 18,
+          "end": 114,
+          "relocated_from": null
+        },
+        {
+          "category": "penalty",
+          "label": "Late delivery penalty",
+          "value": "5% of the monthly fee deducted for each week of delay",
+          "clause_id": "4",
+          "quote": "If the Contractor delivers any work late, a late fee of 5% of the monthly fee is deducted for each week of delay.",
+          "page": 2,
+          "start": 115,
+          "end": 228,
+          "relocated_from": null
+        },
+        {
+          "category": "governing_law",
+          "label": "Governing law",
+          "value": "Laws of the fictional Republic of Examplia",
+          "clause_id": "12",
+          "quote": "This Agreement is governed by the laws of the fictional Republic of Examplia.",
+          "page": 3,
+          "start": 941,
+          "end": 1018,
+          "relocated_from": null
+        }
+      ]
+    },
+    "flags": [
+      {
+        "clause_id": "2",
+        "quote": "After the initial term it renews automatically for successive 12 month terms unless either party gives written notice of non-renewal at least 90 days before the end of the then-current term.",
+        "category": "auto_renewal",
+        "severity": "medium",
+        "title": "Automatic renewal",
+        "explanation": "The agreement renews for another year automatically unless notice is given 90 days before the term ends, which can lock the contractor into a long commitment.",
+        "page": 1,
+        "start": 643,
+        "end": 833,
+        "relocated_from": null
+      },
+      {
+        "clause_id": "5",
+        "quote": "All work product, including any pre-existing materials, tools, templates and ideas the Contractor uses or mentions in connection with the Services, becomes the sole property of the Client on creation. The Contractor assigns all rights worldwide and waives all moral rights. The Contractor may not show the work in a portfolio without written consent.",
+        "category": "ip_assignment",
+        "severity": "high",
+        "title": "All IP to client",
+        "explanation": "All work product, including the contractor’s pre‑existing materials and ideas, becomes the client’s sole property and the contractor waives moral rights, limiting future use or portfolio display.",
+        "page": 2,
+        "start": 352,
+        "end": 702,
+        "relocated_from": null
+      },
+      {
+        "clause_id": "7",
+        "quote": "During the term and for 24 months after it ends, the Contractor will not provide design services to any business that operates in the same industry as the Client or any of its affiliates, anywhere in the world.",
+        "category": "non_compete",
+        "severity": "high",
+        "title": "Broad non‑compete",
+        "explanation": "The contractor is barred from providing design services to any business in the same industry worldwide for the contract term plus two years, which is unusually wide in scope and duration.",
+        "page": 2,
+        "start": 869,
+        "end": 1079,
+        "relocated_from": null
+      },
+      {
+        "clause_id": "8",
+        "quote": "The Client may terminate this Agreement at any time, for any reason or no reason, with 24 hours written notice. The Contractor may terminate only for the Client's uncured material breach, with 60 days written notice.",
+        "category": "unilateral_termination",
+        "severity": "high",
+        "title": "Client can quit anytime",
+        "explanation": "The client may terminate with only 24‑hour notice for any reason, while the contractor can only quit for material breach with 60‑day notice, creating an imbalance of power.",
+        "page": 3,
+        "start": 16,
+        "end": 232,
+        "relocated_from": null
+      },
+      {
+        "clause_id": "9",
+        "quote": "The Contractor is liable for all losses, damages and costs of any kind arising from the Services, with no cap. The Client's total liability to the Contractor will not exceed the fees paid in the previous one month.",
+        "category": "liability",
+        "severity": "high",
+        "title": "Uncapped contractor liability",
+        "explanation": "The contractor is liable for all losses with no cap, while the client’s liability is limited to one month’s fees, exposing the contractor to potentially unlimited risk.",
+        "page": 3,
+        "start": 354,
+        "end": 568,
+        "relocated_from": null
+      },
+      {
+        "clause_id": "10",
+        "quote": "The Contractor will indemnify the Client against all claims, including claims arising from the Client's own instructions or negligence.",
+        "category": "indemnity",
+        "severity": "high",
+        "title": "One‑sided indemnity",
+        "explanation": "The contractor must indemnify the client for all claims, even those caused by the client’s own instructions or negligence, placing all risk on the contractor.",
+        "page": 3,
+        "start": 584,
+        "end": 719,
+        "relocated_from": null
+      },
+      {
+        "clause_id": "4",
+        "quote": "The Client will pay each invoice within 75 days of receipt. If the Contractor delivers any work late, a late fee of 5% of the monthly fee is deducted for each week of delay. The Client may withhold payment of any invoice it disputes in good faith, without limit of time.",
+        "category": "payment_terms",
+        "severity": "medium",
+        "title": "Long payment window & penalties",
+        "explanation": "The client has up to 75 days to pay invoices and can withhold disputed payments indefinitely, while the contractor faces a 5% weekly deduction for late delivery, creating financial strain.",
+        "page": 2,
+        "start": 55,
+        "end": 325,
+        "relocated_from": null
+      }
+    ],
+    "droppedByReason": {},
+    "stats": {
+      "keyTermsTotal": 11,
+      "keyTermsKept": 11,
+      "flagsTotal": 7,
+      "flagsKept": 7,
+      "relocated": 0,
+      "quotePassRate": 1
+    },
+    "usage": {
+      "inputTokens": 2960,
+      "outputTokens": 2276,
+      "latencyMs": 5783
+    }
+  },
+  "qa": [
+    {
+      "question": "How much notice does each side have to give to end the contract?",
+      "result": {
+        "status": "answered",
+        "answer": "The Client can end the agreement with 24 hours written notice, while the Contractor can only end it for the Client’s uncured material breach with 60 days written notice.",
+        "citations": [
+          {
+            "quote": "The Client may terminate this Agreement at any time, for any reason or no reason, with 24 hours written notice.",
+            "clause_id": "8",
+            "page": 3,
+            "start": 16,
+            "end": 127,
+            "relocated_from": null
+          },
+          {
+            "quote": "The Contractor may terminate only for the Client's uncured material breach, with 60 days written notice.",
+            "clause_id": "8",
+            "page": 3,
+            "start": 128,
+            "end": 232,
+            "relocated_from": null
+          }
+        ],
+        "unverified_citations": 0
+      }
+    },
+    {
+      "question": "Can I show this work in my portfolio?",
+      "result": {
+        "status": "answered",
+        "answer": "You may not show the work in a portfolio without the Client's written consent.",
+        "citations": [
+          {
+            "quote": "The Contractor may not show the work in a portfolio without written consent.",
+            "clause_id": "5",
+            "page": 2,
+            "start": 626,
+            "end": 702,
+            "relocated_from": null
+          }
+        ],
+        "unverified_citations": 0
+      }
+    },
+    {
+      "question": "When do I get paid, and what happens if I am late?",
+      "result": {
+        "status": "answered",
+        "answer": "The client must pay each invoice within 75 days after receiving it. If you deliver work late, a late fee of 5% of the monthly fee is deducted for each week of delay.",
+        "citations": [
+          {
+            "quote": "The Client will pay each invoice within 75 days of receipt.",
+            "clause_id": "4",
+            "page": 2,
+            "start": 55,
+            "end": 114,
+            "relocated_from": null
+          },
+          {
+            "quote": "If the Contractor delivers any work late, a late fee of 5% of the monthly fee is deducted for each week of delay.",
+            "clause_id": "4",
+            "page": 2,
+            "start": 115,
+            "end": 228,
+            "relocated_from": null
+          }
+        ],
+        "unverified_citations": 0
+      }
+    }
+  ]
+}
