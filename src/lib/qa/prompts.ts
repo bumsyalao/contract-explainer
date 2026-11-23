@@ -11,7 +11,7 @@ Never give legal advice, never tell the user what they should do or whether to s
 Answer in at most four plain sentences. Support every answer with one to three citations, each a clause id and an exact quote.
 If the question has nothing to do with the contract, set answerable to false.`;
 
-export const MAX_QUESTION_CHARS = 500;
+export { MAX_QUESTION_CHARS } from "./limits";
 
 /** Both untrusted inputs go in the user turn, each in a fence with the same random suffix. */
 export function renderQaPrompt(clauses: Clause[], question: string): string {
