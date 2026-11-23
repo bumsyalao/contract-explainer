@@ -73,3 +73,28 @@ The key is injected by the session proxy and no variable holds it. Scripts that
 read `GROQ_API_KEY` need a placeholder value, and Node needs the proxy turned on:
 `GROQ_API_KEY=proxy-injected NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`.
 For Vercel, the real key must be added in the project's environment variables.
+
+## Reasoning effort (docs: console.groq.com/docs/reasoning)
+- `reasoning_effort`: gpt-oss models accept low, medium, high. Qwen 3.8 accepts
+  none, default, low, medium, high. We default gpt-oss to `low`
+  (override with `GROQ_REASONING_EFFORT`).
+- Effect on one full run of the sample contract (two calls): `gpt-oss-120b`
+  went from about 7.3K tokens at default effort to about 5.3K at low.
+
+## Full pipeline on the 3-page synthetic sample (2026-11-23, one run each)
+| Model | Total tokens | Latency per call | Flagged clauses |
+|---|---|---|---|
+| gpt-oss-120b (low) | 5,286 | 3 to 4 s | 2, 4, 5, 7, 8, 9, 10, 12 |
+| gpt-oss-20b (low) | 4,862 | 1.5 to 1.8 s | 1, 2, 4, 4, 4, 5, 6, 7, 8, 9, 10, 12 |
+| qwen3.8-27b | 4,423 | about 6 s | 1, 2, 4, 5, 7, 8, 9, 10, 12 |
+
+- Deliberately risky clauses in the sample: 2, 4, 5, 7, 8, 9, 10, 11, 12.
+  Every model missed clause 11 (independent contractor, but the client sets
+  hours and equipment). One run each is an anecdote, not an eval.
+- The models copy label text into `clause_id` ("[clause 2 | page 1]") unless
+  told otherwise, so `normalizeClauseId` reduces it to the bare id.
+- One unexplained transient HTTP 400 happened on the very first pipeline run.
+  Replaying the same requests succeeded. The adapter now reports Groq's short
+  error code and type, so a repeat will say what it was.
+- One document uses most of a minute's token budget, so evals must pace
+  themselves (about one document per minute per model).
