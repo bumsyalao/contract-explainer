@@ -4,7 +4,10 @@ import path from "node:path";
 import { SAMPLE_PAGES } from "../src/samples/freelance-agreement";
 
 /** Build a text PDF from page/paragraph arrays. Shared with tests. */
-export async function buildPdf(pages: string[][]): Promise<Uint8Array> {
+export async function buildPdf(
+  pages: string[][],
+  opts: { hyphenate?: boolean } = {},
+): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -26,8 +29,23 @@ export async function buildPdf(pages: string[][]): Promise<Uint8Array> {
       for (const w of words) {
         const test = line ? `${line} ${w}` : w;
         if (f.widthOfTextAtSize(test, size) > maxWidth) {
-          lines.push(line);
-          line = w;
+          // Optionally split a long word across lines with a hyphen, like real typesetting.
+          let split = -1;
+          if (opts.hyphenate && w.length >= 9 && line) {
+            for (let k = w.length - 3; k >= 3; k--) {
+              if (f.widthOfTextAtSize(`${line} ${w.slice(0, k)}-`, size) <= maxWidth) {
+                split = k;
+                break;
+              }
+            }
+          }
+          if (split > 0) {
+            lines.push(`${line} ${w.slice(0, split)}-`);
+            line = w.slice(split);
+          } else {
+            lines.push(line);
+            line = w;
+          }
         } else line = test;
       }
       if (line) lines.push(line);
