@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { withRetry } from "./retry";
-import { ProviderError, RateLimitError } from "./types";
+import { ProviderError, RateLimitError, RetryableProviderError } from "./types";
 
 const noJitter = { random: () => 0.5 }; // multiplier = 1.0
 
@@ -64,6 +64,46 @@ describe("withRetry", () => {
       ),
     ).rejects.toBeInstanceOf(RateLimitError);
     expect(calls).toBe(3); // first try plus two retries
+  });
+
+  it("retries a retryable provider error straight away, then succeeds", async () => {
+    const waits: number[] = [];
+    let n = 0;
+    const result = await withRetry(
+      async () => {
+        if (++n < 3) throw new RetryableProviderError("flaky", 400);
+        return "ok";
+      },
+      { sleep: async (ms) => void waits.push(ms) },
+    );
+    expect(result).toBe("ok");
+    expect(n).toBe(3);
+    expect(waits).toEqual([300, 300]);
+  });
+
+  it("gives up on a retryable error after two quick retries", async () => {
+    let calls = 0;
+    await expect(
+      withRetry(async () => {
+        calls++;
+        throw new RetryableProviderError("flaky", 400);
+      }, { sleep: async () => {} }),
+    ).rejects.toBeInstanceOf(RetryableProviderError);
+    expect(calls).toBe(3);
+  });
+
+  it("keeps the rate-limit retries separate from the quick retries", async () => {
+    let n = 0;
+    const result = await withRetry(
+      async () => {
+        n++;
+        if (n === 1) throw new RetryableProviderError("flaky", 400);
+        if (n === 2) throw new RateLimitError("429", 10);
+        return "ok";
+      },
+      { maxRetries: 1, sleep: async () => {} },
+    );
+    expect(result).toBe("ok");
   });
 
   it("does not retry other errors", async () => {

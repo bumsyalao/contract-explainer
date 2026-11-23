@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GroqProvider } from "./groq";
-import { InvalidJsonError, ProviderError, RateLimitError } from "./types";
+import { InvalidJsonError, ProviderError, RateLimitError, RetryableProviderError } from "./types";
 
 const schema = {
   type: "object",
@@ -119,6 +119,20 @@ describe("GroqProvider", () => {
     const err = await p.generate(req).catch((e) => e);
     expect(err.message).toBe("Model API error 400 (invalid_request_error/json_validate_failed).");
     expect(err.message).not.toContain("CONTRACT TEXT");
+  });
+
+  it("marks Groq's intermittent json_validate_failed 400 as worth retrying", async () => {
+    const { p } = makeProvider(() => json({ error: { type: "invalid_request_error", code: "json_validate_failed", failed_generation: "CONTRACT TEXT" } }, 400));
+    const err = await p.generate(req).catch((e) => e);
+    expect(err).toBeInstanceOf(RetryableProviderError);
+    expect(err).toBeInstanceOf(ProviderError);
+    expect(err.status).toBe(400);
+    expect(err.message).not.toContain("CONTRACT TEXT");
+  });
+
+  it("does not mark other 400s as retryable", async () => {
+    const { p } = makeProvider(() => json({ error: { code: "invalid_api_key" } }, 400));
+    expect(await p.generate(req).catch((e) => e)).not.toBeInstanceOf(RetryableProviderError);
   });
 
   it("drops error labels that contain unexpected characters", async () => {

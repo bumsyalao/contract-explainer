@@ -2,6 +2,7 @@ import {
   InvalidJsonError,
   ProviderError,
   RateLimitError,
+  RetryableProviderError,
   type GenerateRequest,
   type GenerateResult,
   type LlmProvider,
@@ -117,14 +118,19 @@ export class GroqProvider implements LlmProvider {
       // Report only Groq's short error code/type. The message and failed_generation
       // fields can echo the contract, and our request holds it, so never include them.
       let label = "";
+      let code = "";
       try {
         const errBody = (await res.json()) as { error?: { code?: unknown; type?: unknown } };
         const safe = (v: unknown) => (typeof v === "string" && /^[a-z0-9_.-]{1,60}$/i.test(v) ? v : "");
-        label = [safe(errBody.error?.type), safe(errBody.error?.code)].filter(Boolean).join("/");
+        code = safe(errBody.error?.code);
+        label = [safe(errBody.error?.type), code].filter(Boolean).join("/");
       } catch {
         /* body was not JSON */
       }
-      throw new ProviderError(`Model API error ${res.status}${label ? ` (${label})` : ""}.`, res.status);
+      const message = `Model API error ${res.status}${label ? ` (${label})` : ""}.`;
+      // The model wrote JSON that the server then rejected. It is intermittent, so try again.
+      if (res.status === 400 && code === "json_validate_failed") throw new RetryableProviderError(message, res.status);
+      throw new ProviderError(message, res.status);
     }
 
     const data = (await res.json()) as ChatResponse;

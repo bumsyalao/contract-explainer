@@ -1,7 +1,9 @@
-import { RateLimitError } from "./types";
+import { RateLimitError, RetryableProviderError } from "./types";
 
 export type RetryOptions = {
   maxRetries?: number;
+  /** Retries for RetryableProviderError, which needs no long wait. Default 2. */
+  maxQuickRetries?: number;
   baseMs?: number;
   /** Never wait longer than this for one retry. */
   maxWaitMs?: number;
@@ -12,7 +14,8 @@ export type RetryOptions = {
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
- * Retry only on rate limits (HTTP 429), with exponential backoff and jitter.
+ * Retry on rate limits (HTTP 429) with exponential backoff and jitter, and retry a
+ * RetryableProviderError a couple of times straight away.
  * If the provider says how long to wait, we honour that, unless it is longer
  * than maxWaitMs (a daily quota), in which case we give up immediately.
  * After the last retry the RateLimitError is rethrown so the UI can show a
@@ -24,16 +27,24 @@ export async function withRetry<T>(
 ): Promise<T> {
   const {
     maxRetries = 3,
+    maxQuickRetries = 2,
     baseMs = 1000,
     maxWaitMs = 20_000,
     sleep = realSleep,
     random = Math.random,
   } = opts;
 
+  let quick = 0;
   for (let attempt = 0; ; attempt++) {
     try {
       return await fn();
     } catch (err) {
+      if (err instanceof RetryableProviderError && quick < maxQuickRetries) {
+        quick++;
+        await sleep(300);
+        attempt--; // quick retries do not use up the rate-limit retries
+        continue;
+      }
       if (!(err instanceof RateLimitError) || attempt >= maxRetries) throw err;
       // A long wait means a daily quota, not a short burst. Retrying inside a
       // web request would just waste attempts, so surface it straight away.

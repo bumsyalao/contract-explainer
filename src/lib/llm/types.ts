@@ -47,6 +47,17 @@ export class ProviderError extends Error {
   }
 }
 
+/**
+ * A failure that is worth trying again straight away, such as Groq's intermittent
+ * 400 json_validate_failed (the model produced JSON the server then rejected).
+ */
+export class RetryableProviderError extends ProviderError {
+  constructor(message: string, status?: number) {
+    super(message, status);
+    this.name = "RetryableProviderError";
+  }
+}
+
 export class InvalidJsonError extends Error {
   constructor(
     message: string,
