@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { detectOnPage, resolveOverlaps } from "./detectors";
-import { FAKE, LOOKALIKE, NUMBERS_PAGE, PII_PAGE } from "./fixtures";
+import { FAKE, LOOKALIKE, NUMBERS_PAGE, PHONE_FORMATS, PII_PAGE } from "./fixtures";
 import type { Kind } from "./types";
 import { ibanValid, looksLikeDate, luhnValid, ssnValid } from "./validators";
 
@@ -114,7 +114,7 @@ describe("a number never swallows the clause number that follows it", () => {
     expect(found(text).find(([k]) => k === "PHONE")?.[1]).toBe(phone);
   });
   it("still reads international numbers with brackets, dots and dashes", () => {
-    for (const n of ["+1 (555) 123-4567", "+44.20.7946.0958", "+49-30-1234567"]) {
+    for (const n of PHONE_FORMATS) {
       expect(has(`Call ${n} today.`, "PHONE", n), n).toBe(true);
     }
   });

@@ -63,3 +63,6 @@ export const LOOKALIKE = {
   isoDate: "2026-03-01",
   slashDate: "14/03/2026",
 } as const;
+
+/** International phone numbers written with brackets, dots and dashes. */
+export const PHONE_FORMATS = ["+1 (555) 123-4567", "+44.20.7946.0958", "+49-30-1234567"] as const;

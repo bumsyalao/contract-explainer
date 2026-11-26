@@ -90,7 +90,8 @@ are "decided, not built yet".
 - Why: partial redaction gives false comfort and conflicts with exact quoting.
 - Constraint that changed the plan: the owner cannot run local models (disk space),
   so the planned local mode is not built.
-- Status: decided. Flagged as an area to improve in later versions.
+- Status: superseded by D14, which builds a redaction tool. The reasoning above explains why it
+  is a review step that does not promise to catch everything.
 
 ## D8. Model provider and Q&A
 - Provider wrapper: one interface (`generate` returns parsed JSON, usage and
@@ -267,6 +268,59 @@ are "decided, not built yet".
   sample flow, including that highlighted words equal the quote, no horizontal
   scrolling, keyboard tab navigation, and no console errors. Not yet checked with a
   screen reader.
+- Status: built.
+
+## D14. Redaction of personal details (supersedes D7)
+- Problem: the app sent a document's full text to the AI provider, so a real contract's names,
+  addresses and account numbers went out with it. The only protection was a warning not to upload
+  real contracts.
+- Choices, each with options weighed:
+  - Where it runs (browser review step; server review step; standalone tool that outputs a file).
+    Chosen: a review step in the browser. A server-side step would mean the original PDF had already
+    reached the server, which protects against the AI provider but not against us.
+  - Who decides (algorithm suggests and you review; you specify everything; fully automatic).
+    Chosen: the algorithm suggests and you review and add your own. Fully automatic would suggest
+    a document is safe when it is not, because no algorithm finds every name.
+  - What replaces a detail ([PERSON_1] style labels; one generic [REDACTED]; block characters).
+    Chosen: consistent labels, so the contract still reads sensibly and risk flags such as
+    one-sided termination keep their meaning.
+- How it works: the browser reads the PDF (`unpdf`, loaded only when a file is chosen), the detectors
+  run on each page, and the person reviews. Only the redacted pages go to a new text-only route,
+  `POST /api/analyze-text`, which returns exactly the pages it analysed so highlight offsets match
+  what is shown. Details are grouped, so one choice replaces every occurrence, including a name
+  wrapped across a line break. After analysis the original text is dropped from memory and only the
+  label map is kept, for an optional "show original details" switch that changes display only.
+- Detectors favour few false alarms: checksums where one exists (IBAN mod 97, card Luhn), context
+  where it helps (account number, date of birth, signed by), and the parties the contract defines
+  for itself. Money, dates and durations are never flagged.
+- Questions are redacted too: a typed name is replaced before the question is sent, and the screen
+  shows what was actually sent. The server also masks AI-directed text and declines verdict
+  questions, as in D13.
+- The tool works with live analysis off, so it can be shown on the public site: nothing is uploaded.
+  There is also an example PDF full of made-up details, and a download of the redacted text.
+- Limits, stated on the screen and in the README: it does not find every name or address, only those
+  that follow a title or label, are defined by the contract, or look like a street address. Anything
+  else must be typed in. It reads English-style formats. It cannot redact a scanned document, which
+  is rejected anyway.
+- Tested: 100+ unit tests, including a long list of look-alikes that must not be flagged, a test that
+  redacting never changes how any real document splits into clauses (same ids, same pages), a test
+  that no selected original survives in the output, and a real-browser run that records every network
+  request. In it, nothing was uploaded while the file was read, the analysis request held none of the
+  14 personal details in the example, and a name typed into a question was replaced before it was sent.
+- Bugs found while building it, all fixed: IBANs were missed because I forgot the space real IBANs
+  have after the check digits; "Signed by:" labels were case-sensitive; UK mobile numbers come in two
+  groups; a name swallowed the capitalised word after it; and, found by reading a screenshot rather
+  than a test, the phone pattern swallowed the clause number after it ("0958. 2. FEES" lost its "2."),
+  which silently changed the redacted document's structure. The structure test now guards that.
+- Left open, on purpose:
+  - `POST /api/analyze` (upload a whole PDF) still exists for scripts, and bypasses redaction.
+    The interface never uses it. Recommended: remove it, so "the server never receives your PDF"
+    is true of the whole app. Not done without the owner's say-so.
+  - Reading a PDF parses on the page's main thread, with a 45 second timeout, and needs the Iterator
+    global (Safari 18.4 or newer). Older browsers get a clear message.
+  - A convenience not built: select text in the preview to redact it. Today you type it in.
+  - `LIVE_ANALYSIS` is read when the site is built, so changing it needs a redeploy. The route reads
+    it at runtime, so an out-of-sync local run could show the page enabled while the route refuses.
 - Status: built.
 
 ## Future enhancements

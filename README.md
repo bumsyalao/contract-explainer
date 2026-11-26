@@ -15,13 +15,15 @@ anything because of what a tool like this says.
 
 **https://contract-explainer-five.vercel.app**
 
-The live demo shows the sample contract from a saved result. Live uploads are switched off
-there so a free AI quota cannot be used up. To try your own made-up contract, run it
-yourself (see below).
+The live demo shows the sample contract from a saved result. Live AI analysis is switched off
+there so a free AI quota cannot be used up. You can still try the redaction tool on the live
+site: choose "Try the redaction tool on an example", or pick a PDF of your own. It is read on
+your device and nothing is uploaded. To try the full analysis on your own made-up contract,
+run it yourself (see below).
 
-The hosted demo is for the sample contract and other made-up contracts only. It sends
-files to a free AI service, so please do not upload a real contract or anything with
-personal details.
+The hosted demo is for the sample contract and other made-up contracts only. When live
+analysis is on, redacted text is sent to a free AI service, and this tool cannot find every
+name or address, so please do not use a real contract or anything with personal details.
 
 ## What you get
 
@@ -34,22 +36,59 @@ personal details.
   where that fits. Ask whether it is safe to sign, or whether you should sign, and it will not
   answer: it does not give legal advice, so it points you to the Risks tab instead.
 - Click any "Clause 7, page 2" link and the exact words are highlighted in the contract.
+- **A redaction step before anything is sent.** Your PDF is read on your device. The tool finds
+  what looks personal, you review it, add anything it missed, and only the redacted text is
+  sent for analysis (more below).
 
 ## How it works
 
-1. **Read the PDF** page by page (`unpdf`). Scanned PDFs are turned away with a clear
-   message, because I cannot trust text that came from guessing at pixels.
-2. **Split it into clauses.** I look for numbered headings first and fall back to chunks
+1. **Read the PDF in your browser**, page by page (`unpdf`). The file never leaves your device
+   at this step. Scanned PDFs are turned away with a clear message, because I cannot trust text
+   that came from guessing at pixels.
+2. **Redact, with you in charge.** The tool finds what looks personal and shows it to you (see
+   "Redaction" below). You untick false matches and add anything it missed, and only the
+   redacted text goes to the server.
+3. **Split it into clauses.** I look for numbered headings first and fall back to chunks
    of text when there are none. Every clause keeps its page and its exact position.
-3. **Ask the model twice**: once for key terms, once for risks. It has to answer in a strict
+4. **Ask the model twice**: once for key terms, once for risks. It has to answer in a strict
    JSON shape and cite a clause and a quote for everything.
-4. **Check every quote.** A quote must appear word for word in the clause it cites, after
+5. **Check every quote.** A quote must appear word for word in the clause it cites, after
    ignoring only layout differences (line breaks, curly quotes, a word split with a hyphen
    at the end of a line). Capital letters, numbers and words must match exactly, so "30 days"
    can never pass as "60 days". Page numbers and highlight positions come from my own data,
    never from the model.
-5. **Answer questions the same way.** If none of an answer's quotes check out, the answer is
+6. **Answer questions the same way.** If none of an answer's quotes check out, the answer is
    not shown and you are told the document does not say.
+
+### Redaction
+
+The redaction runs in your browser, so the original PDF and its text never reach my server.
+It is a review step, not a button that promises to make a document safe.
+
+- **What it finds on its own:** emails, phone numbers, web addresses, bank account numbers
+  (IBANs are checked with their checksum), payment card numbers (checked with the Luhn
+  formula), US and UK ID numbers, account and sort codes, dates of birth, postcodes, street
+  addresses, titled names such as "Mr Smith", company names ending in Ltd or Inc, and the
+  people and companies the contract names for itself, for example `Northwind Digital Ltd (the
+  "Client")`. It will not mistake money, dates or durations for any of these.
+- **What it cannot do:** know other names or addresses. If a name is not defined in the
+  contract and does not follow a title or a label, you have to type it in. The screen says so.
+- **You decide.** Everything found starts ticked. You can untick a false match, add your own
+  text (every place it occurs is replaced, even across line breaks), and switch between a
+  preview of what will be sent and what was found.
+- **Labels, not blanks.** A detail becomes `[PERSON_1]`, `[COMPANY_1]` and so on, and the same
+  detail always gets the same label, so the contract still reads sensibly and the AI can still
+  tell who owes what.
+- **Your questions are redacted too.** If you ask "Can Jordan Example end this early?", the
+  name is replaced before the question is sent, and the screen shows what was actually sent.
+- **Original details stay on your device.** After analysis you can switch them back on for
+  your own reading. That mapping lives only in the browser tab.
+- **Download.** You can download the redacted text as a plain file to use anywhere.
+
+In a real browser test the request that carries the text for analysis was checked against
+every personal detail in the example, and none was in it.
+
+### Prompt injection
 
 The contract text is treated as untrusted. It could say "ignore your instructions", so it
 only ever goes in a fenced block with a random label that the contract cannot guess, the model
@@ -134,8 +173,11 @@ a later run with the retry fix in place.
   documents at roughly 7 pages and 4 MB. Longer ones get a clear message.
 - **Scanned PDFs.** No OCR yet.
 - **Real contracts.** I wanted a local mode for private documents, but the models I would
-  run locally do not fit on my machine. So the hosted version is for made-up contracts only.
-  Redaction of personal details is not built, and I note it as something to improve.
+  run locally do not fit on my machine, so even redacted text goes to a hosted AI service.
+  The redaction tool helps, but it cannot find every name or address, so the hosted demo is
+  still for made-up contracts only.
+- **Old browsers.** Reading the PDF on your device needs a recent browser (Chrome, Edge,
+  Firefox, or Safari 18.4 or newer). Older ones get a clear message.
 - **Being right.** Quotes are verified. Summaries and explanations are written by the model
   and can still be loose. In my first test one model turned "5% of the monthly fee per week"
   into "5% per week". Subtle problems get missed too: in the sample, every model missed a
@@ -170,21 +212,30 @@ npm run typecheck && npm run lint
 2. Add these environment variables: `GROQ_API_KEY`, and the model names from `.env.example`
    (`GROQ_MODEL_LARGE`, `GROQ_MODEL_SMALL`, `GROQ_MODEL_COMPARE`).
 3. To keep the public demo from using up your free quota, set `LIVE_ANALYSIS=off`. Visitors
-   then get the saved sample only, with no model calls. Turn it on when you want live uploads.
+   then get the saved sample only, with no model calls, and can still use the redaction tool.
+   The page reads this setting when the site is built, so after changing it, redeploy.
 4. In the Groq console, switch on zero data retention under Data Controls.
 
 ## Privacy
 
-The app stores nothing. When live analysis is on, the file's text is sent to Groq. Groq says
-it does not keep inference requests by default, though it may log them for up to 30 days to
-troubleshoot or investigate abuse, and zero data retention switches that off. That is why
-the hosted demo is for made-up contracts only.
+- **Your PDF is read on your device.** The original file and its text never reach my server.
+- **You choose what to redact** before anything is sent. Only the redacted text goes out, and
+  questions you type are redacted the same way. The tool cannot find every name or address,
+  so read the preview.
+- **The app stores nothing.** There is no database and no account, and the server forgets the
+  text when the request ends.
+- **The AI provider** receives the redacted text when live analysis is on. Groq says it does not
+  keep inference requests by default, though it may log them for up to 30 days to troubleshoot
+  or investigate abuse, and zero data retention switches that off.
+- **There is still no local model**, so this is not a promise that nothing leaves your device.
+  That is why the hosted demo is for made-up contracts only.
 
 ## Project map
 
 | Path | What is there |
 |---|---|
-| `src/lib/pdf`, `src/lib/segment` | PDF text and clause splitting |
+| `src/lib/pdf`, `src/lib/segment` | PDF text (on the server and in the browser) and clause splitting |
+| `src/lib/redact` | the redaction tool: detectors, labels, review logic |
 | `src/lib/analysis` | prompts, schemas and the two-call pipeline |
 | `src/lib/verify` | quote matching and the verification step |
 | `src/lib/safety` | detector for text aimed at AI readers |
