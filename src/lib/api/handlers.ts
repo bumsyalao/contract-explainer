@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { MAX_PAGES, MAX_BYTES } from "@/lib/pdf/extract";
+import { MAX_PAGES, MAX_BYTES } from "@/lib/pdf/pages";
 import type { LlmProvider } from "@/lib/llm/types";
 import { answerQuestion, validateQuestion } from "@/lib/qa/answer";
 import { isVerdictQuestion } from "@/lib/qa/verdict";
 import { MAX_QUESTION_CHARS } from "@/lib/qa/prompts";
-import { analyzeDocument } from "@/lib/pipeline/analyze-document";
+import { analyzeDocument, analyzeText } from "@/lib/pipeline/analyze-document";
+import { assertReadablePages } from "@/lib/pdf/pages";
 import { BadRequestError, describeForLog, LiveDisabledError, toApiError } from "./errors";
 import { isLiveEnabled } from "./live";
 
@@ -104,6 +105,51 @@ export async function handleAsk(
     const { stats: _stats, ...publicResult } = result;
     void _stats;
     return Response.json(publicResult, { headers: JSON_HEADERS });
+  } catch (err) {
+    return errorResponse(err);
+  }
+}
+
+/**
+ * Text pages, already redacted in the browser. The original PDF never reaches the server on
+ * this path. Pages must be numbered 1, 2, 3 and so on, and are trimmed here so the pages we
+ * analyse are exactly the pages we send back.
+ */
+const AnalyzeTextBodySchema = z.object({
+  pages: z
+    .array(z.object({ page: z.number().int().min(1).max(MAX_PAGES), text: z.string().max(60_000) }))
+    .min(1)
+    .max(MAX_PAGES),
+});
+
+const MAX_TEXT_BODY_BYTES = 512 * 1024;
+
+export async function handleAnalyzeText(
+  req: Request,
+  getProvider: () => LlmProvider,
+  live: () => boolean = isLiveEnabled,
+): Promise<Response> {
+  try {
+    if (!live()) throw new LiveDisabledError();
+    const declared = Number(req.headers.get("content-length") ?? "0");
+    if (declared > MAX_TEXT_BODY_BYTES) throw new BadRequestError("That text is too large.");
+    const raw = await req.text();
+    if (raw.length > MAX_TEXT_BODY_BYTES) throw new BadRequestError("That text is too large.");
+
+    let json: unknown;
+    try {
+      json = JSON.parse(raw);
+    } catch {
+      throw new BadRequestError("Please send the document pages as JSON.");
+    }
+    const parsed = AnalyzeTextBodySchema.safeParse(json);
+    if (!parsed.success) throw new BadRequestError("Please send the document pages as JSON.");
+
+    const pages = parsed.data.pages.map((p) => ({ page: p.page, text: p.text.trim() }));
+    if (pages.some((p, i) => p.page !== i + 1)) throw new BadRequestError("Pages must be numbered 1, 2, 3 and so on.");
+    assertReadablePages(pages);
+
+    return Response.json(await analyzeText(getProvider(), pages), { headers: JSON_HEADERS });
   } catch (err) {
     return errorResponse(err);
   }

@@ -1,7 +1,8 @@
 import { analyze } from "@/lib/analysis/analyze";
 import type { LlmProvider } from "@/lib/llm/types";
 import { guardClauses, type AiDirectedFinding } from "@/lib/safety/ai-directed";
-import { extractPages, type Page } from "@/lib/pdf/extract";
+import { extractPages } from "@/lib/pdf/extract";
+import type { Page } from "@/lib/pdf/pages";
 import { segment, type Clause } from "@/lib/segment/segment";
 import { verifyAnalysis, type DropReason, type VerifiedAnalysis } from "@/lib/verify/verify";
 
@@ -26,9 +27,12 @@ export type AnalyzeResponse = {
   usage: { inputTokens: number; outputTokens: number; latencyMs: number };
 };
 
-/** PDF bytes in, verified analysis out. Everything stays in memory. */
-export async function analyzeDocument(provider: LlmProvider, pdf: Uint8Array): Promise<AnalyzeResponse> {
-  const { pages } = await extractPages(pdf);
+/**
+ * Text pages in, verified analysis out. This is the path the browser uses: the person redacts
+ * the text on their own device first, so the server only ever sees the redacted pages. The
+ * pages returned are exactly the ones analysed, so highlight offsets match what is shown.
+ */
+export async function analyzeText(provider: LlmProvider, pages: Page[]): Promise<AnalyzeResponse> {
   const { clauses, structured } = segment(pages);
   const { findings: aiDirectedText } = guardClauses(clauses);
   const raw = await analyze(provider, clauses);
@@ -55,4 +59,10 @@ export async function analyzeDocument(provider: LlmProvider, pdf: Uint8Array): P
       latencyMs: a.latencyMs + b.latencyMs,
     },
   };
+}
+
+/** PDF bytes in, verified analysis out. Everything stays in memory. Used by the evals and the PDF route. */
+export async function analyzeDocument(provider: LlmProvider, pdf: Uint8Array): Promise<AnalyzeResponse> {
+  const { pages } = await extractPages(pdf);
+  return analyzeText(provider, pages);
 }

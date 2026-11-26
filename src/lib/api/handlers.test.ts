@@ -9,7 +9,7 @@ import { QA_SYSTEM } from "@/lib/qa/prompts";
 import { MAX_BYTES } from "@/lib/pdf/extract";
 import { extractPages } from "@/lib/pdf/extract";
 import { segment, type Clause } from "@/lib/segment/segment";
-import { handleAnalyze, handleAsk } from "./handlers";
+import { handleAnalyze, handleAnalyzeText, handleAsk } from "./handlers";
 
 let samplePdf: Uint8Array;
 let clauses: Clause[];
@@ -200,6 +200,108 @@ describe("planted text aimed at AI readers", () => {
     });
     await handleAsk(askRequest({ question: "What is the fee?", clauses: tampered }), () => provider);
     expect(seen[0]).not.toContain("CANARY-77");
+  });
+});
+
+describe("handleAnalyzeText (the path the browser uses, after redacting on the person's device)", () => {
+  const textRequest = (body: unknown, headers: Record<string, string> = {}) =>
+    new Request("http://localhost/api/analyze-text", { method: "POST", body: typeof body === "string" ? body : JSON.stringify(body), headers });
+  let pages: { page: number; text: string }[];
+  beforeAll(async () => {
+    pages = (await extractPages(samplePdf.slice())).pages;
+  });
+
+  it("analyses text pages and returns exactly the pages it was sent, so highlights match what is shown", async () => {
+    const res = await handleAnalyzeText(textRequest({ pages }), () => analysisProvider());
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    const body = await bodyOf(res);
+    expect(body.pages).toEqual(pages);
+    expect(body.flags[0]).toMatchObject({ clause_id: "7", page: 2 });
+    // Offsets point at the quote in the page text that came back.
+    const f = body.flags[0];
+    expect(body.pages[f.page - 1].text.slice(f.start, f.end).replace(/\s+/g, " ")).toContain("will not provide design services");
+  });
+
+  it("works on text where details were replaced by labels", async () => {
+    const redacted = pages.map((p) => ({ ...p, text: p.text.replace(/Northwind Digital Ltd/g, "[COMPANY_1]").replace(/Jordan Example/g, "[PERSON_1]") }));
+    const seen: string[] = [];
+    const provider = new MockProvider((req: GenerateRequest) => {
+      seen.push(req.prompt);
+      return req.system === KEY_TERMS_SYSTEM ? { document_type: "freelance_agreement", summary: "s", parties: [], key_terms: [] } : { flags: [] };
+    });
+    const res = await handleAnalyzeText(textRequest({ pages: redacted }), () => provider);
+    expect(res.status).toBe(200);
+    expect(seen.join(" ")).toContain("[COMPANY_1]");
+    expect(seen.join(" ")).not.toContain("Northwind");
+    expect(seen.join(" ")).not.toContain("Jordan Example");
+  });
+
+  it("trims each page, and returns the trimmed pages", async () => {
+    const res = await handleAnalyzeText(textRequest({ pages: pages.map((p) => ({ ...p, text: `  \n${p.text}\n  ` })) }), () => analysisProvider());
+    expect((await bodyOf(res)).pages).toEqual(pages);
+  });
+
+  it("reports planted text aimed at AI readers on this path too, and hides it from the model", async () => {
+    const injection = (await extractPages(new Uint8Array(await readFile(path.join(process.cwd(), "evals/contracts/injection-freelance.pdf"))))).pages;
+    const seen: string[] = [];
+    const provider = new MockProvider((req: GenerateRequest) => {
+      seen.push(req.prompt);
+      return req.system === KEY_TERMS_SYSTEM ? { document_type: "freelance_agreement", summary: "s", parties: [], key_terms: [] } : { flags: [] };
+    });
+    const body = await bodyOf(await handleAnalyzeText(textRequest({ pages: injection }), () => provider));
+    expect(body.aiDirectedText).toHaveLength(1);
+    expect(seen.join(" ")).not.toContain("CANARY");
+  });
+
+  it("is switched off by LIVE_ANALYSIS=off before the body is read or a provider is made", async () => {
+    let created = 0;
+    const res = await handleAnalyzeText(textRequest({ pages }), () => { created++; return analysisProvider(); }, () => false);
+    expect(res.status).toBe(503);
+    expect((await bodyOf(res)).error.code).toBe("LIVE_DISABLED");
+    expect(created).toBe(0);
+  });
+
+  it.each([
+    ["not JSON", "{nope"],
+    ["no pages", { pages: [] }],
+    ["wrong shape", { pages: "x" }],
+    ["missing text", { pages: [{ page: 1 }] }],
+    ["page 0", { pages: [{ page: 0, text: "x".repeat(40) }] }],
+    ["not numbered from 1", { pages: [{ page: 2, text: "x".repeat(40) }] }],
+    ["gap in numbering", { pages: [{ page: 1, text: "x".repeat(40) }, { page: 3, text: "y".repeat(40) }] }],
+    ["too many pages", { pages: Array.from({ length: 41 }, (_, i) => ({ page: i + 1, text: "x".repeat(40) })) }],
+  ])("rejects %s before calling the model", async (_name, body) => {
+    const provider = analysisProvider();
+    const res = await handleAnalyzeText(textRequest(body), () => provider);
+    expect(res.status).toBe(400);
+    expect(provider.calls).toHaveLength(0);
+  });
+
+  it("rejects an oversized body from its declared length", async () => {
+    const res = await handleAnalyzeText(textRequest({ pages }, { "content-length": String(5 * 1024 * 1024) }), () => analysisProvider());
+    expect(res.status).toBe(400);
+  });
+
+  it("turns away pages with no real text as a scan", async () => {
+    const res = await handleAnalyzeText(textRequest({ pages: [{ page: 1, text: "" }, { page: 2, text: "   " }] }), () => analysisProvider());
+    expect(res.status).toBe(422);
+    expect((await bodyOf(res)).error.code).toBe("SCANNED_PDF");
+  });
+
+  it("refuses text over the free-tier budget with 413", async () => {
+    const res = await handleAnalyzeText(textRequest({ pages: [{ page: 1, text: "word ".repeat(5000) }] }), () => analysisProvider());
+    expect([res.status, (await bodyOf(res)).error.code]).toEqual([413, "DOCUMENT_TOO_LONG"]);
+  });
+
+  it("hides upstream error text and configuration problems", async () => {
+    const broken = new MockProvider(() => { throw new ProviderError("echo Northwind Digital Ltd", 500); });
+    const res = await handleAnalyzeText(textRequest({ pages }), () => broken);
+    expect(res.status).toBe(502);
+    expect(JSON.stringify(await bodyOf(res))).not.toContain("Northwind");
+    const res2 = await handleAnalyzeText(textRequest({ pages }), () => { throw new Error("GROQ_API_KEY is not set"); });
+    expect(res2.status).toBe(500);
+    expect(JSON.stringify(await bodyOf(res2))).not.toContain("GROQ");
   });
 });
 
