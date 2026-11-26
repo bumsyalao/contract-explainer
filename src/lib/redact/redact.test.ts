@@ -253,8 +253,8 @@ describe("redactQuestion", () => {
 
 describe("normKey", () => {
   it("normalises by kind", () => {
-    expect(normKey("EMAIL", " A@B.com ")).toBe("a@b.com");
-    expect(normKey("PHONE", "(555) 010-0199")).toBe("5550100199");
+    expect(normKey("EMAIL", ` ${FAKE.email.toUpperCase()} `)).toBe(FAKE.email);
+    expect(normKey("PHONE", FAKE.phoneUs)).toBe(FAKE.phoneUs.replace(/\D/g, ""));
     expect(normKey("PERSON", "Jordan   Example")).toBe("jordan example");
   });
 });
