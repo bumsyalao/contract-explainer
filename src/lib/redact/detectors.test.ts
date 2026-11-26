@@ -98,6 +98,28 @@ describe("detectors find what they should", () => {
   });
 });
 
+describe("a number never swallows the clause number that follows it", () => {
+  it("stops a phone number at the full stop, so the next clause number survives", () => {
+    const text = `Notices go to ${FAKE.email} or by phone to ${FAKE.phoneIntl}. 2. FEES. The Client pays.`;
+    const phone = found(text).find(([k]) => k === "PHONE");
+    expect(phone?.[1]).toBe(FAKE.phoneIntl);
+  });
+  it.each([
+    [FAKE.phoneIntl, "FEES"],
+    [FAKE.phoneUs, "FEES"],
+    [FAKE.phoneUk, "FEES"],
+    [FAKE.phoneUkMobile, "FEES"],
+  ])("%s followed by a numbered clause", (phone, heading) => {
+    const text = `Call ${phone}. 3. ${heading}. Money.`;
+    expect(found(text).find(([k]) => k === "PHONE")?.[1]).toBe(phone);
+  });
+  it("still reads international numbers with brackets, dots and dashes", () => {
+    for (const n of ["+1 (555) 123-4567", "+44.20.7946.0958", "+49-30-1234567"]) {
+      expect(has(`Call ${n} today.`, "PHONE", n), n).toBe(true);
+    }
+  });
+});
+
 describe("names do not swallow what follows them", () => {
   it("stops before a label word on the same line", () => {
     expect(has(`Signed by: ${FAKE.person}   Witness: ${FAKE.titled}`, "PERSON", FAKE.person)).toBe(true);

@@ -123,7 +123,9 @@ const findPhones: Finder = (t) => {
       priority: 60,
     });
   // International: a leading plus sign, then 9 to 15 digits with spaces, dots, dashes or brackets
-  for (const m of matches(/(?<![\w+])\+\d[\d\s().-]{7,18}\d(?![\w])/g, t)) if (phoneOk(m, t, 9, 15)) add(m);
+  // Each group is separated by ONE optional space, dot or dash, so it cannot run on past a full stop
+  // into the next sentence or a clause number (the old pattern swallowed "0958. 2" from "0958. 2. FEES").
+  for (const m of matches(/(?<![\w+])\+\d{1,3}(?:[ .-]?\(?\d{1,5}\)?){2,5}(?![\w])/g, t)) if (phoneOk(m, t, 9, 15)) add(m);
   // US and Canada: 3 + 3 + 4 digits, with the area code optionally in brackets
   for (const m of matches(/(?<![\w.$£€-])(?:\(\d{3}\)\s?|\d{3}[\s.-])\d{3}[\s.-]\d{4}(?![\w-])/g, t)) if (phoneOk(m, t, 10, 10)) add(m);
   // UK national: a leading 0 then 10 or 11 digits in three groups

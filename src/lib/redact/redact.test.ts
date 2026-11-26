@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { extractPages } from "@/lib/pdf/extract";
+import { segment } from "@/lib/segment/segment";
 import { FAKE, PII_PAGE } from "./fixtures";
 import { findPartyNames } from "./parties";
 import { addCustomTerm, applyRedactions, detect, normKey, redactQuestion, segmentPage } from "./redact";
@@ -183,6 +184,12 @@ describe("applyRedactions", () => {
     expect(JSON.stringify(pages)).toBe(before);
   });
 
+  it("keeps every clause number, so the redacted contract still splits into clauses", () => {
+    const text = `1. CONTACT. Phone ${FAKE.phoneIntl}. 2. FEES. Pay USD 100. 3. TERM. One year.`;
+    const out = applyRedactions([page(text)], detect([page(text)]), all(detect([page(text)])));
+    expect(out.pages[0].text).toBe("1. CONTACT. Phone [PHONE_1]. 2. FEES. Pay USD 100. 3. TERM. One year.");
+  });
+
   it("works across pages and keeps page numbers", () => {
     const two = [page(`Hello ${FAKE.person}.`, 1), page(`Bye ${FAKE.person}.`, 2)];
     const custom = addCustomTerm(two, FAKE.person, "PERSON", [])!;
@@ -271,6 +278,35 @@ describe("on the real contracts in this repo", () => {
         expect(kinds.has(bad as never), `${path.basename(f)} flagged ${bad}`).toBe(false);
       }
     }
+  });
+
+  it("redacting never changes how a contract splits into clauses (same ids, same pages)", async () => {
+    const labels: { file: string }[] = JSON.parse(await readFile(path.join(dir, "labels.json"), "utf8"));
+    const files = [
+      ...labels.map((l) => path.join(dir, l.file)),
+      path.join(process.cwd(), "public/samples/freelance-agreement.pdf"),
+      path.join(process.cwd(), "public/samples/redaction-example.pdf"),
+    ];
+    for (const f of files) {
+      const { pages } = await extractPages(new Uint8Array(await readFile(f)));
+      const s = detect(pages);
+      const redacted = applyRedactions(pages, s, all(s)).pages;
+      const shape = (ps: typeof pages) => segment(ps).clauses.map((c) => `${c.id}@${c.page}`);
+      expect(shape(redacted), path.basename(f)).toEqual(shape(pages));
+    }
+  });
+
+  it("the redaction example is full of details, finds every kind, and leaves none behind", async () => {
+    const { pages } = await extractPages(new Uint8Array(await readFile(path.join(process.cwd(), "public/samples/redaction-example.pdf"))));
+    const s = detect(pages);
+    const kinds = new Set(s.map((x) => x.kind));
+    for (const k of ["PERSON", "COMPANY", "ADDRESS", "POSTCODE", "EMAIL", "PHONE", "IBAN", "ACCOUNT", "ID", "DOB"]) expect(kinds.has(k as never), k).toBe(true);
+    const text = applyRedactions(pages, s, all(s)).pages.map((p) => p.text).join(" ").replace(/\s+/g, " ");
+    for (const v of [FAKE.company, FAKE.person, FAKE.street, FAKE.street2, FAKE.ukPostcode, FAKE.zip, FAKE.email, FAKE.phoneIntl, FAKE.iban, FAKE.account, FAKE.sortCode, FAKE.dob, FAKE.ssn, FAKE.titled]) {
+      expect(text, v).not.toContain(v);
+    }
+    expect(text).toContain("USD 18,000"); // ordinary contract content is untouched
+    expect(text).toContain("24 hours notice");
   });
 
   it("finds the parties of a synthetic contract and redacting them leaves no trace", async () => {
