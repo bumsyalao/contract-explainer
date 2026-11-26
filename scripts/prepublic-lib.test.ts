@@ -71,7 +71,8 @@ describe("splitDiffByFile and fixtures", () => {
 
   it("lets the scanner skip only the named fixture file", () => {
     expect(SECRET_FIXTURE_FILES.has("scripts/prepublic-lib.test.ts")).toBe(true);
+    expect(SECRET_FIXTURE_FILES.has("src/lib/redact/fixtures.ts")).toBe(true);
     expect(SECRET_FIXTURE_FILES.has("src/a.ts")).toBe(false);
-    expect(SECRET_FIXTURE_FILES.size).toBe(1);
+    expect(SECRET_FIXTURE_FILES.size).toBe(2);
   });
 });

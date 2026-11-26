@@ -70,7 +70,7 @@ export function hasDemoLink(readme: string): boolean {
  * Files that contain deliberately fake secrets so the scanner itself can be tested.
  * They are skipped by the secret scan (and only by it). Keep this list as short as possible.
  */
-export const SECRET_FIXTURE_FILES = new Set(["scripts/prepublic-lib.test.ts"]);
+export const SECRET_FIXTURE_FILES = new Set(["scripts/prepublic-lib.test.ts", "src/lib/redact/fixtures.ts"]);
 
 /** Split the output of `git show -p` into one chunk per file, so fixtures can be skipped. */
 export function splitDiffByFile(diff: string): { path: string; text: string }[] {
