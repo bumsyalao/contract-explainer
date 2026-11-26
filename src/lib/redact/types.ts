@@ -58,4 +58,6 @@ export type Suggestion = {
   source: Source;
   confidence: Confidence;
   reason: string;
+  /** Higher wins when two details overlap. */
+  priority: number;
 };
