@@ -4,6 +4,7 @@ import type { AnalyzeResponse } from "@/lib/api/types";
 import type { Selection } from "@/lib/ui/highlight";
 import { TERM_CATEGORY_LABELS } from "@/lib/ui/labels";
 import { JumpLink } from "./JumpLink";
+import { useReveal } from "./reveal";
 
 type Props = {
   terms: AnalyzeResponse["keyTerms"]["key_terms"];
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function KeyTerms({ terms, activeKey, onShow }: Props) {
+  const reveal = useReveal();
   if (terms.length === 0) {
     return <p className="empty">No key terms were found with a quote we could verify.</p>;
   }
@@ -25,8 +27,8 @@ export function KeyTerms({ terms, activeKey, onShow }: Props) {
           <li key={key} className="term" data-active={activeKey === key} onClick={show}>
             <p className="term__meta">{TERM_CATEGORY_LABELS[t.category]}</p>
             <p className="term__line">
-              <span className="term__label">{t.label}</span>
-              <span className="term__value">{t.value}</span>
+              <span className="term__label">{reveal(t.label)}</span>
+              <span className="term__value">{reveal(t.value)}</span>
             </p>
             <p className="term__where">
               <JumpLink clauseId={t.clause_id} page={t.page} onClick={show} />

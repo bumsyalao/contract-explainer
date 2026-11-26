@@ -5,13 +5,15 @@ import { MAX_UPLOAD_MB } from "@/lib/ui/client";
 
 type Props = {
   liveEnabled: boolean;
-  loading: string | null;
+  loading: { what: string; stage: "reading" | "analysing" } | null;
   error: { message: string; rateLimited: boolean } | null;
   onFile: (file: File) => void;
   onSample: () => void;
+  /** Loads a made-up PDF full of made-up personal details, to try the redaction tool. */
+  onExample: () => void;
 };
 
-export function Landing({ liveEnabled, loading, error, onFile, onSample }: Props) {
+export function Landing({ liveEnabled, loading, error, onFile, onSample, onExample }: Props) {
   const inputId = useId();
   const [dragging, setDragging] = useState(false);
 
@@ -26,8 +28,14 @@ export function Landing({ liveEnabled, loading, error, onFile, onSample }: Props
 
         {loading ? (
           <div className="working" role="status" aria-live="polite">
-            <p className="working__title">Reading {loading}</p>
-            <p className="working__hint">The free AI model usually takes 10 to 30 seconds. If it is busy, this can take longer.</p>
+            <p className="working__title">
+              {loading.stage === "reading" ? `Reading ${loading.what} on your device` : `Reading ${loading.what}`}
+            </p>
+            <p className="working__hint">
+              {loading.stage === "reading"
+                ? "Nothing is uploaded at this step. Next you choose what to redact."
+                : "The free AI model usually takes 10 to 30 seconds. If it is busy, this can take longer."}
+            </p>
             <div className="working__bar" aria-hidden="true" />
           </div>
         ) : (
@@ -43,52 +51,53 @@ export function Landing({ liveEnabled, loading, error, onFile, onSample }: Props
               <button type="button" className="btn btn--primary" onClick={onSample}>
                 Try the sample contract
               </button>
+              <button type="button" className="btn btn--secondary" onClick={onExample}>
+                Try the redaction tool on an example
+              </button>
             </div>
 
-            {liveEnabled ? (
-              <>
             <div
-                  className={`drop${dragging ? " drop--over" : ""}`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragging(true);
-                  }}
-                  onDragLeave={() => setDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDragging(false);
-                    const file = e.dataTransfer.files[0];
-                    if (file) onFile(file);
-                  }}
-                >
-                  <input
-                    id={inputId}
-                    className="drop__input"
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      e.target.value = "";
-                      if (file) onFile(file);
-                    }}
-                  />
-                  <label htmlFor={inputId} className="btn btn--secondary">
-                    Choose a PDF
-                  </label>
-                  <p className="drop__hint">
-                    or drop one here. Text-based PDFs only, up to {MAX_UPLOAD_MB} MB. Scanned documents are not supported yet.
-                  </p>
-                </div>
-    
-                <p className="warning">
-                  <strong>Use made-up or sample contracts only.</strong> This public demo sends your file to a free AI
-                  service. Do not upload a real contract or anything with personal details.
-                </p>
-              </>
-            ) : (
+              className={`drop${dragging ? " drop--over" : ""}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                const file = e.dataTransfer.files[0];
+                if (file) onFile(file);
+              }}
+            >
+              <input
+                id={inputId}
+                className="drop__input"
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) onFile(file);
+                }}
+              />
+              <label htmlFor={inputId} className="btn btn--secondary">
+                Choose a PDF
+              </label>
+              <p className="drop__hint">
+                or drop one here. Text-based PDFs only, up to {MAX_UPLOAD_MB} MB. Scanned documents are not supported yet.
+              </p>
+            </div>
+
+            <p className="warning">
+              <strong>Your PDF is read on your device first, and you choose what to redact.</strong> Only the redacted
+              text is sent for analysis. The tool cannot find every name or address, so check the preview. On this
+              public demo, please still use made-up or sample contracts only.
+            </p>
+            {!liveEnabled && (
               <p className="warning">
-                <strong>Uploads are switched off on this demo.</strong> The sample contract shows everything the app
-                does, using a saved result, so it works without any live AI calls.
+                <strong>Live AI analysis is switched off on this demo.</strong> You can still choose a PDF to try the
+                redaction tool and download the redacted text. Nothing is uploaded.
               </p>
             )}
           </>

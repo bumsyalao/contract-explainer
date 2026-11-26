@@ -5,13 +5,17 @@ import type { AnalyzeResponse, SampleResponse } from "@/lib/api/types";
 import type { Selection } from "@/lib/ui/highlight";
 import { AskPanel } from "./AskPanel";
 import { JumpLink } from "./JumpLink";
+import type { LabelEntry } from "@/lib/redact/redact";
 import { KeyTerms } from "./KeyTerms";
+import { useReveal } from "./reveal";
 import { RiskList } from "./RiskList";
 
 type Props = {
   data: AnalyzeResponse;
   saved: SampleResponse["qa"] | null;
   liveEnabled: boolean;
+  /** What was redacted before analysis, for redacting questions the same way. */
+  labels: LabelEntry[];
   activeKey: string | null;
   onShow: (key: string, sel: Selection) => void;
 };
@@ -25,7 +29,8 @@ const DOC_TYPES: Record<string, string> = {
 
 type TabId = "risks" | "terms" | "ask";
 
-export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props) {
+export function Findings({ data, saved, liveEnabled, labels, activeKey, onShow }: Props) {
+  const reveal = useReveal();
   const [tab, setTab] = useState<TabId>("risks");
   const base = useId();
   const { keyTerms, flags, droppedByReason } = data;
@@ -59,10 +64,10 @@ export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props)
         <h2 className="summary__title">{DOC_TYPES[keyTerms.document_type] ?? "Agreement"}</h2>
         {keyTerms.parties.length > 0 && (
           <p className="summary__parties">
-            {keyTerms.parties.map((p) => `${p.name} (${p.role})`).join(" and ")}
+            {reveal(keyTerms.parties.map((p) => `${p.name} (${p.role})`).join(" and "))}
           </p>
         )}
-        <p className="summary__text">{keyTerms.summary}</p>
+        <p className="summary__text">{reveal(keyTerms.summary)}</p>
         <p className="summary__check">
           Every highlighted quote was found in the document.
           {removed > 0 &&
@@ -87,7 +92,7 @@ export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props)
               const show = () => onShow(key, { page: f.page, start: f.start, end: f.end });
               return (
                 <li key={key} className="aiwarn__item" data-active={activeKey === key}>
-                  <blockquote className="quote">{f.quote}</blockquote>
+                  <blockquote className="quote">{reveal(f.quote)}</blockquote>
                   <p className="aiwarn__where">
                     <JumpLink clauseId={f.clause_id} page={f.page} onClick={show} />
                   </p>
@@ -125,7 +130,7 @@ export function Findings({ data, saved, liveEnabled, activeKey, onShow }: Props)
         <KeyTerms terms={keyTerms.key_terms} activeKey={activeKey} onShow={onShow} />
       </div>
       <div role="tabpanel" id={`${base}-panel-ask`} aria-labelledby={`${base}-tab-ask`} className="tabpanel" hidden={tab !== "ask"}>
-        <AskPanel data={data} saved={saved} liveEnabled={liveEnabled} activeKey={activeKey} onShow={onShow} onGoToRisks={() => setTab("risks")} />
+        <AskPanel data={data} saved={saved} liveEnabled={liveEnabled} labels={labels} activeKey={activeKey} onShow={onShow} onGoToRisks={() => setTab("risks")} />
       </div>
 
       <p className="findings__foot">

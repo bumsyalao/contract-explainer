@@ -4,6 +4,7 @@ import type { AnalyzeResponse } from "@/lib/api/types";
 import type { Selection } from "@/lib/ui/highlight";
 import { clauseLabel, FLAG_CATEGORY_LABELS, SEVERITY_LABELS, sortFlags } from "@/lib/ui/labels";
 import { JumpLink } from "./JumpLink";
+import { useReveal } from "./reveal";
 
 type Props = {
   flags: AnalyzeResponse["flags"];
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function RiskList({ flags, activeKey, onShow }: Props) {
+  const reveal = useReveal();
   if (flags.length === 0) {
     return (
       <p className="empty">
@@ -34,9 +36,9 @@ export function RiskList({ flags, activeKey, onShow }: Props) {
               <span className="risk__sev">{SEVERITY_LABELS[f.severity]}</span>
               <span className="risk__cat">{FLAG_CATEGORY_LABELS[f.category]}</span>
             </p>
-            <h3 className="risk__title">{f.title}</h3>
-            <p className="risk__why">{f.explanation}</p>
-            <blockquote className="quote">{f.quote}</blockquote>
+            <h3 className="risk__title">{reveal(f.title)}</h3>
+            <p className="risk__why">{reveal(f.explanation)}</p>
+            <blockquote className="quote">{reveal(f.quote)}</blockquote>
             <p className="risk__where">
               <JumpLink clauseId={f.clause_id} page={f.page} onClick={show} />
               {f.relocated_from && (

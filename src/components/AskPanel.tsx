@@ -3,14 +3,18 @@
 import { useRef, useState, type FormEvent } from "react";
 import type { AnalyzeResponse, AskResponse, SampleResponse } from "@/lib/api/types";
 import { MAX_QUESTION_CHARS } from "@/lib/qa/limits";
+import { redactQuestion, type LabelEntry } from "@/lib/redact/redact";
 import { isVerdictQuestion, VERDICT_DECLINE_MESSAGE } from "@/lib/qa/verdict";
 import { askQuestion, ApiClientError } from "@/lib/ui/client";
 import type { Selection } from "@/lib/ui/highlight";
 import { JumpLink } from "./JumpLink";
+import { useReveal } from "./reveal";
 
 type Item = {
   id: number;
   question: string;
+  /** What was actually sent, when it differs from what was typed because details were redacted. */
+  sentAs?: string | null;
   state:
     | { kind: "loading" }
     | { kind: "done"; result: AskResponse; saved: boolean }
@@ -21,6 +25,8 @@ type Props = {
   data: AnalyzeResponse;
   saved: SampleResponse["qa"] | null;
   liveEnabled: boolean;
+  /** What was redacted from the contract, so the same details are redacted from questions. */
+  labels: LabelEntry[];
   activeKey: string | null;
   onShow: (key: string, sel: Selection) => void;
   onGoToRisks: () => void;
@@ -32,7 +38,7 @@ const GENERIC_SUGGESTIONS = [
   "Who owns the work I produce?",
 ];
 
-export function AskPanel({ data, saved, liveEnabled, activeKey, onShow, onGoToRisks }: Props) {
+export function AskPanel({ data, saved, liveEnabled, labels, activeKey, onShow, onGoToRisks }: Props) {
   const [text, setText] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const nextId = useRef(1);
@@ -66,9 +72,11 @@ export function AskPanel({ data, saved, liveEnabled, activeKey, onShow, onGoToRi
       return;
     }
 
-    setItems((prev) => [{ id, question, state: { kind: "loading" } }, ...prev]);
+    // A name redacted from the contract must not slip out in a question, so redact it the same way.
+    const sent = redactQuestion(question, labels);
+    setItems((prev) => [{ id, question, sentAs: sent.changed ? sent.text : null, state: { kind: "loading" } }, ...prev]);
     try {
-      const result = await askQuestion(question, data.clauses);
+      const result = await askQuestion(sent.text, data.clauses);
       patch(id, { kind: "done", result, saved: false });
     } catch (err) {
       patch(id, {
@@ -128,6 +136,7 @@ export function AskPanel({ data, saved, liveEnabled, activeKey, onShow, onGoToRi
           {items.map((item) => (
             <li key={item.id} className="answer">
               <h3 className="answer__q">{item.question}</h3>
+              {item.sentAs && <p className="answer__note">Sent to the AI as: {item.sentAs}</p>}
               {item.state.kind === "loading" && <p className="answer__wait">Looking in the contract…</p>}
               {item.state.kind === "error" && <p className="answer__error">{item.state.message}</p>}
               {item.state.kind === "done" && (
@@ -163,6 +172,7 @@ function Result({
   onShow: (key: string, sel: Selection) => void;
   onGoToRisks: () => void;
 }) {
+  const reveal = useReveal();
   if (result.status === "declined") {
     return (
       <>
@@ -189,14 +199,14 @@ function Result({
   }
   return (
     <>
-      <p className="answer__text">{result.answer}</p>
+      <p className="answer__text">{reveal(result.answer)}</p>
       <ul className="cites">
         {result.citations.map((c, i) => {
           const key = `cite:${itemId}:${i}`;
           const show = () => onShow(key, { page: c.page, start: c.start, end: c.end });
           return (
             <li key={key} className="cite" data-active={activeKey === key}>
-              <blockquote className="quote">{c.quote}</blockquote>
+              <blockquote className="quote">{reveal(c.quote)}</blockquote>
               <JumpLink clauseId={c.clause_id} page={c.page} onClick={show} />
             </li>
           );

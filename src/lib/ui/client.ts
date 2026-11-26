@@ -1,4 +1,5 @@
 import type { AnalyzeResponse, ApiErrorCode, AskResponse, SampleResponse } from "@/lib/api/types";
+import type { Page } from "@/lib/pdf/pages";
 import type { Clause } from "@/lib/segment/segment";
 
 /** Matches the server limit. Duplicated on purpose so server code stays out of the browser bundle. */
@@ -46,10 +47,18 @@ export function checkFile(file: File): string | null {
   return null;
 }
 
-export async function analyzeFile(file: File): Promise<AnalyzeResponse> {
-  const form = new FormData();
-  form.append("file", file);
-  return parse<AnalyzeResponse>(await send("/api/analyze", { method: "POST", body: form }));
+/**
+ * Send already-redacted text pages for analysis. The original PDF and the original text never
+ * leave the browser: only the pages passed here are sent.
+ */
+export async function analyzeText(pages: Page[]): Promise<AnalyzeResponse> {
+  return parse<AnalyzeResponse>(
+    await send("/api/analyze-text", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ pages }),
+    }),
+  );
 }
 
 export async function loadSample(): Promise<SampleResponse> {

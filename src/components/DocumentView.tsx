@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import type { AnalyzeResponse } from "@/lib/api/types";
 import { findClauseFor, splitForHighlight } from "@/lib/ui/highlight";
 import { clauseLabel } from "@/lib/ui/labels";
+import { useReveal } from "./reveal";
 import type { ActiveQuote } from "./Workspace";
 
 export function DocumentView({ data, active }: { data: AnalyzeResponse; active: ActiveQuote | null }) {
+  const reveal = useReveal();
   const activeClause = active ? findClauseFor(data.clauses, active.sel) : null;
 
   // Bring the highlighted words into view whenever a new "show me where" link is used.
@@ -42,15 +44,15 @@ export function DocumentView({ data, active }: { data: AnalyzeResponse; active: 
                   <p className="clause__text">
                     {parts ? (
                       <>
-                        {parts.before}
+                        {reveal(parts.before)}
                         {/* key restarts the highlighter animation on every new selection */}
                         <mark id="active-quote" key={active!.nonce} className="marker">
-                          {parts.marked}
+                          {reveal(parts.marked)}
                         </mark>
-                        {parts.after}
+                        {reveal(parts.after)}
                       </>
                     ) : (
-                      c.text
+                      reveal(c.text)
                     )}
                   </p>
                 </div>
